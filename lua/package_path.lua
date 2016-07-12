@@ -1,0 +1,1 @@
+package.path = 'C:/Program Files/Factorio/data/base/?.lua;C:/Program Files/Factorio/data/core/lualib/?.lua'
