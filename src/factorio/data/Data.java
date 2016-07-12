@@ -22,8 +22,6 @@ public class Data {
 
 	private Data() {}
 
-	private static final Path package_path_lua = Paths.get("lua/package_path.lua");
-
 	private static final Set<Recipe> recipes = new HashSet<>();
 	private static final Set<Assembler> assemblers = new HashSet<>();
 	private static final Set<Module> modules = new HashSet<>();
@@ -40,8 +38,7 @@ public class Data {
 
 		Path core = factorioDir.resolve("data/core");
 
-		Files.write(package_path_lua, ("package.path = '" + core.toFile().getAbsolutePath().replace("\\", "/") + "/?.lua;" + core.resolve("lualib").toFile().getAbsolutePath().replace("\\", "/") + "/?.lua'").getBytes());
-		global.get("dofile").call(LuaValue.valueOf(package_path_lua.toFile().getAbsolutePath()));
+		global.get("package").set("path", core.toFile().getAbsolutePath().replace("\\", "/") + "/?.lua;" + core.resolve("lualib").toFile().getAbsolutePath().replace("\\", "/") + "/?.lua");
 
 		Files.walk(core.resolve("lualib")).forEach(path -> {
 			if (Files.isDirectory(path)) return;
@@ -56,8 +53,7 @@ public class Data {
 		for (int m = -1; m < mods.length; m++) {
 			Path mod = m == -1 ? factorioDir.resolve("data/base") : mods[m];
 
-			Files.write(package_path_lua, ("package.path = '" + mod.toFile().getAbsolutePath().replace("\\", "/") + "/?.lua;" + core.resolve("lualib").toFile().getAbsolutePath().replace("\\", "/") + "/?.lua'").getBytes());
-			global.get("dofile").call(LuaValue.valueOf(package_path_lua.toFile().getAbsolutePath()));
+			global.get("package").set("path", mod.toFile().getAbsolutePath().replace("\\", "/") + "/?.lua;" + core.resolve("lualib").toFile().getAbsolutePath().replace("\\", "/") + "/?.lua");
 
 			global.get("dofile").call(LuaValue.valueOf(mod.resolve("data.lua").toFile().getAbsolutePath()));
 
