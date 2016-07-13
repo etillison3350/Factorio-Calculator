@@ -1,13 +1,14 @@
 package factorio.data;
 
+import java.awt.Image;
 import java.util.HashMap;
 
 public class MiningRecipe extends Recipe {
 	
 	public final float hardness;
 	
-	public MiningRecipe(String name, String type, float time, float hardness, String result) {
-		super(name, "mining-" + type, time, new HashMap<>(), result);
+	public MiningRecipe(String name, String type, float time, float hardness, String result, Image icon) {
+		super(name, "mining-" + type, time, new HashMap<>(), result, icon);
 		
 		this.hardness = hardness;
 	}
