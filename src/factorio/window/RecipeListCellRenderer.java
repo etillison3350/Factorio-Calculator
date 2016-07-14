@@ -1,10 +1,14 @@
 package factorio.window;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 
+import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import factorio.data.Data;
 import factorio.data.Recipe;
@@ -20,6 +24,8 @@ public class RecipeListCellRenderer extends DefaultListCellRenderer {
 		Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
 		if (value instanceof Recipe && c instanceof JLabel) {
+			JPanel panel = new JPanel(new BorderLayout());
+			
 			JLabel label = (JLabel) c;
 			Recipe recipe = (Recipe) value;
 
@@ -36,6 +42,13 @@ public class RecipeListCellRenderer extends DefaultListCellRenderer {
 			}
 
 			label.setText(String.format("<html>%s<font color=\"#8b0000\">%s</font>%s</html>", pre, search, post));
+			panel.add(label, BorderLayout.LINE_START);
+			
+			panel.add(new JTextField(10), BorderLayout.LINE_END);
+			
+			panel.add(Box.createHorizontalGlue());
+			
+			return panel;
 		}
 
 		return c;
