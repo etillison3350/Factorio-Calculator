@@ -7,7 +7,7 @@ public class MiningRecipe extends Recipe {
 	
 	public final float hardness;
 	
-	public MiningRecipe(String name, String type, float time, float hardness, String result, Image icon) {
+	protected MiningRecipe(String name, String type, float time, float hardness, String result, Image icon) {
 		super(name, "mining-" + type, time, new HashMap<>(), result, icon);
 		
 		this.hardness = hardness;

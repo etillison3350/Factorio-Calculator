@@ -1,33 +1,35 @@
 package factorio.window;
 
 import java.awt.Dimension;
-import java.util.Set;
-import java.util.Vector;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import factorio.data.Data;
 import factorio.data.Recipe;
 
 public class Window extends JFrame {
 
 	private static final long serialVersionUID = -377970844785993226L;
 
+	private JSplitPane in_full, full_total;
+
 	private JPanel inputPanel;
-	private JTree all, total;
+	private JTree full, total;
 
 	private JTextField search;
-	private JList<Recipe> possibilities;
-	private RecipeListCellRenderer renderer;
+	private ProductList inputList;
+	private JButton calculate;
 
 	public Window() {
 		super("Factorio Calculator");
@@ -52,39 +54,7 @@ public class Window extends JFrame {
 			}
 
 			private void update() {
-				String text = search.getText().trim().toLowerCase().replace('-', ' ');
-				renderer.setSearchKey(text);
-				if (text.isEmpty()) {
-					possibilities.setListData(new Vector<>(Data.getRecipes()));
-				}
-
-				Vector<Recipe> exact = new Vector<>();
-				Vector<Recipe> matchName = new Vector<>();
-				Vector<Recipe> matchId = new Vector<>();
-				Vector<Recipe> containName = new Vector<>();
-				Vector<Recipe> containId = new Vector<>();
-
-				Set<Recipe> recipes = Data.getRecipes();
-				for (Recipe recipe : recipes) {
-					if (Data.nameFor(recipe).equalsIgnoreCase(text) || recipe.name.replace('-', ' ').equalsIgnoreCase(text)) {
-						exact.addElement(recipe);
-					} else if (Data.nameFor(recipe).toLowerCase().startsWith(text)) {
-						matchName.addElement(recipe);
-					} else if (recipe.name.replace('-', ' ').toLowerCase().startsWith(text)) {
-						matchId.addElement(recipe);
-					} else if (Data.nameFor(recipe).toLowerCase().contains(text)) {
-						containName.addElement(recipe);
-					} else if (recipe.name.replace('-', ' ').contains(text)) {
-						containId.addElement(recipe);
-					}
-				}
-
-				exact.addAll(matchName);
-				exact.addAll(matchId);
-				exact.addAll(containName);
-				exact.addAll(containId);
-
-				possibilities.setListData(exact);
+				inputList.setSearchKey(search.getText().trim().toLowerCase().replace('-', ' '));
 			}
 
 			@Override
@@ -93,14 +63,25 @@ public class Window extends JFrame {
 		search.setMaximumSize(new Dimension(search.getMaximumSize().width, search.getPreferredSize().height));
 		inputPanel.add(search);
 
-		possibilities = new JList<>(new Vector<>(Data.getRecipes()));
-		renderer = new RecipeListCellRenderer();
-		possibilities.setCellRenderer(renderer);
-		inputPanel.add(new JScrollPane(possibilities));
+		inputList = new ProductList();
+		((JScrollPane) inputPanel.add(new JScrollPane(inputList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER))).getVerticalScrollBar().setUnitIncrement(Recipe.ICON_SIZE);
+
+		calculate = new JButton("Calculate");
+		calculate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		inputPanel.add(calculate);
 
 		inputPanel.add(Box.createVerticalGlue());
 
-		this.add(inputPanel);
+		full = new JTree();
+
+		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, full);
+		this.add(in_full);
 	}
 
 }

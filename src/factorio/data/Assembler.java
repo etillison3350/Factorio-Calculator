@@ -15,7 +15,7 @@ public class Assembler {
 	public final long energy;
 	public final float speed;
 	
-	public Assembler(String name, int ingredients, float speed, long energy, int modules, boolean coal, Collection<String> categories, Collection<String> effects) {
+	protected Assembler(String name, int ingredients, float speed, long energy, int modules, boolean coal, Collection<String> categories, Collection<String> effects) {
 		this.name = name;
 		this.ingredients = ingredients;
 		this.speed = speed;

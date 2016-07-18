@@ -13,10 +13,6 @@ public class Evaluator {
 
 	private static final Pattern TOKEN = Pattern.compile("[\\+\\-\\*\\/\\(\\)]|(?:\\-?\\d+)");
 
-	public static void main(String args[]) {
-		System.out.println(evaluate("(3 + 4) * 2 / ( 1 - 5 )"));
-	}
-
 	public static List<String> toPostfix(String infix) {
 		ArrayDeque<String> stack = new ArrayDeque<>(), oper = new ArrayDeque<>();
 
@@ -62,38 +58,44 @@ public class Evaluator {
 	private static int precedence(char oper) {
 		return oper == '(' ? 2 : (oper == '/' || oper == '*' ? 1 : 0);
 	}
-	
-	public static double evaluate(List<String> postfix) {
-		List<String> pfx = new ArrayList<>(postfix);
-		Collections.reverse(pfx);
-		
-		ArrayDeque<Double> stack = new ArrayDeque<>();
 
-		for (String token : pfx) {
-			try {
-				double d = Double.parseDouble(token);
-				stack.push(d);
-			} catch (NumberFormatException e) {
-				switch (token) {
-					case "+":
-						stack.push(stack.pop() + stack.pop());
-						break;
-					case "-":
-						stack.push(-stack.pop() + stack.pop());
-						break;
-					case "*":
-						stack.push(stack.pop() * stack.pop());
-						break;
-					case "/":
-						stack.push(1 / (stack.pop() / stack.pop()));
-						break;
+	public static double evaluate(List<String> postfix) {
+		try {
+			List<String> pfx = new ArrayList<>(postfix);
+			Collections.reverse(pfx);
+
+			ArrayDeque<Double> stack = new ArrayDeque<>();
+
+			for (String token : pfx) {
+				try {
+					double d = Double.parseDouble(token);
+					stack.push(d);
+				} catch (NumberFormatException e) {
+					switch (token) {
+						case "+":
+							stack.push(stack.pop() + stack.pop());
+							break;
+						case "-":
+							stack.push(-stack.pop() + stack.pop());
+							break;
+						case "*":
+							stack.push(stack.pop() * stack.pop());
+							break;
+						case "/":
+							stack.push(1 / (stack.pop() / stack.pop()));
+							break;
+					}
 				}
 			}
+
+			return stack.peek();
+		} catch (Exception e) {
+			IllegalArgumentException exception = new IllegalArgumentException("Could not evaluate postfix.");
+			exception.initCause(e);
+			throw exception;
 		}
-		
-		return stack.peek();
 	}
-	
+
 	public static double evaluate(String infix) {
 		return evaluate(toPostfix(infix));
 	}

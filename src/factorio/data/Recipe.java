@@ -16,19 +16,19 @@ public class Recipe {
 	public final float time;
 	private final ImageIcon icon;
 
-	public Recipe(String name, float time, Map<String, Float> ingredients, String result, Image icon) {
+	protected Recipe(String name, float time, Map<String, Float> ingredients, String result, Image icon) {
 		this(name, time, ingredients, result, 1, icon);
 	}
 
-	public Recipe(String name, String type, float time, Map<String, Float> ingredients, String result, Image icon) {
+	protected Recipe(String name, String type, float time, Map<String, Float> ingredients, String result, Image icon) {
 		this(name, type, time, ingredients, result, 1, icon);
 	}
 
-	public Recipe(String name, float time, Map<String, Float> ingredients, String result, int resultCount, Image icon) {
+	protected Recipe(String name, float time, Map<String, Float> ingredients, String result, int resultCount, Image icon) {
 		this(name, "crafting", time, ingredients, result, resultCount, icon);
 	}
 
-	public Recipe(String name, String type, float time, Map<String, Float> ingredients, String result, float resultCount, Image icon) {
+	protected Recipe(String name, String type, float time, Map<String, Float> ingredients, String result, float resultCount, Image icon) {
 		this.name = name;
 		this.type = type.toLowerCase();
 		this.time = time;
@@ -37,11 +37,11 @@ public class Recipe {
 		this.icon = new ImageIcon(icon.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH));
 	}
 
-	public Recipe(String name, float time, Map<String, Float> ingredients, Map<String, Float> results, Image icon) {
+	protected Recipe(String name, float time, Map<String, Float> ingredients, Map<String, Float> results, Image icon) {
 		this(name, "crafting", time, ingredients, results, icon);
 	}
 
-	public Recipe(String name, String type, float time, Map<String, Float> ingredients, Map<String, Float> results, Image icon) {
+	protected Recipe(String name, String type, float time, Map<String, Float> ingredients, Map<String, Float> results, Image icon) {
 		this.name = name;
 		this.type = type.toLowerCase();
 		this.time = time;

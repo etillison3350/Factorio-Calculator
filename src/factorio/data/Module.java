@@ -12,10 +12,18 @@ public class Module {
 	private final Set<String> allowedRecipes = new HashSet<>();
 	public final String name;
 	
-	public Module(String name, Map<String, Float> effects, String... allowedRecipes) {
+	protected Module(String name, Map<String, Float> effects, String... allowedRecipes) {
 		this.name = name;
 		this.effects.putAll(effects);
 		Arrays.stream(allowedRecipes).forEach(this.allowedRecipes::add);
+	}
+	
+	public float getEffectValue(String effect) {
+		Float value = effects.get(effect);
+		if (value == null) {
+			return 1;
+		}
+		return value + 1;
 	}
 
 }
