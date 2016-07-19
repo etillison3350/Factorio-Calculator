@@ -7,12 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +98,7 @@ public class Data {
 			});
 		}
 
-		global.get("dofile").call(LuaValue.valueOf(Paths.get("lua/gather.lua").toFile().getAbsolutePath()));
+		global.get("dofile").call(LuaValue.valueOf(Paths.get("resources/gather.lua").toFile().getAbsolutePath()));
 
 		LuaValue recipes = global.get("recipes");
 		for (int i = 1; i <= recipes.length(); i++) {
@@ -211,7 +213,7 @@ public class Data {
 				} catch (Exception e) {
 					icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
 				}
-				
+
 				Data.recipes.add(new MiningRecipe(name, type, time, hardness, result, icon));
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
@@ -366,6 +368,31 @@ public class Data {
 		}
 	}
 
+	private static Collection<String> blacklist;
+
+	public static boolean isBlacklisted(String recipeName) {
+		if (blacklist == null) {
+			Path blacklist = Paths.get("resources/recipe-blacklist.cfg");;
+			if (!Files.exists(blacklist)) {
+				try {
+					Files.createDirectories(Paths.get("resources"));
+					Files.createFile(blacklist);
+				} catch (IOException e) {}
+				Data.blacklist = new HashSet<>();
+				return false;
+			} else {
+				try {
+					Data.blacklist = new HashSet<>(Files.readAllLines(blacklist));
+				} catch (IOException e) {
+					Data.blacklist = new HashSet<>();
+					return false;
+				}
+			}
+		}
+		
+		return blacklist.contains(recipeName);
+	}
+
 	public static String nameFor(String id) {
 		return names.get(id);
 	}
@@ -376,8 +403,8 @@ public class Data {
 		return ret;
 	}
 
-	public static Set<Recipe> getRecipes() {
-		Set<Recipe> ret = new TreeSet<>(new Comparator<Recipe>() {
+	public static SortedSet<Recipe> getRecipesSorted() {
+		SortedSet<Recipe> ret = new TreeSet<>(new Comparator<Recipe>() {
 
 			@Override
 			public int compare(Recipe o1, Recipe o2) {
@@ -387,6 +414,10 @@ public class Data {
 		});
 		ret.addAll(recipes);
 		return ret;
+	}
+
+	public static Set<Recipe> getRecipes() {
+		return new HashSet<>(recipes);
 	}
 
 	public static Set<Assembler> getAssemblers() {

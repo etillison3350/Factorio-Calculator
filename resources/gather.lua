@@ -29,31 +29,31 @@ end
 fuel = {}
 icons = {}
 for k, v in pairs(data.raw) do
-	for k, v in pairs(v) do
-		if v["type"] == "ammo" 
-		or v["type"] == "armor"
-		or v["type"] == "battery-equipment"
-		or v["type"] == "blueprint"
-		or v["type"] == "blueprint-book"
-		or v["type"] == "capsule"
-		or v["type"] == "deconstruction-item"
-		or v["type"] == "fluid"
-		or v["type"] == "gun"
-		or v["type"] == "item"
-		or v["type"] == "mining-tool"
-		or v["type"] == "module"
-		or v["type"] == "movement-bonus-equipment"
-		or v["type"] == "night-vision-equipment"
-		or v["type"] == "rail-planner"
-		or v["type"] == "repair-tool"
-		or v["type"] == "roboport-equipment"
-		or v["type"] == "solar-panel-equipment"
-		or v["type"] == "tool"
+	for k2, v2 in pairs(v) do
+		if v2["type"] == "ammo" 
+		or v2["type"] == "armor"
+		or v2["type"] == "battery-equipment"
+		or v2["type"] == "blueprint"
+		or v2["type"] == "blueprint-book"
+		or v2["type"] == "capsule"
+		or v2["type"] == "deconstruction-item"
+		or v2["type"] == "fluid"
+		or v2["type"] == "gun"
+		or v2["type"] == "item"
+		or v2["type"] == "mining-tool"
+		or v2["type"] == "module"
+		or v2["type"] == "movement-bonus-equipment"
+		or v2["type"] == "night-vision-equipment"
+		or v2["type"] == "rail-planner"
+		or v2["type"] == "repair-tool"
+		or v2["type"] == "roboport-equipment"
+		or v2["type"] == "solar-panel-equipment"
+		or v2["type"] == "tool"
 		then -- This is a list of all of the types that inherit from item, because I haven't been able to find any sort of file that defines this
-			if v["fuel_value"] ~= nil then
-				table.insert(fuel, {name = v["name"], fuel_value = v["fuel_value"]})
+			if v2["fuel_value"] ~= nil then
+				table.insert(fuel, {name = v2["name"], fuel_value = v2["fuel_value"]})
 			end
-			icons[v["name"]] = v["icon"]
+			icons[v2["name"]] = v2["icon"]
 		end
 	end
 end

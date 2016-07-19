@@ -30,7 +30,7 @@ public class ProductList extends JPanel {
 
 		this.container = new JPanel(new GridLayout(0, 1));
 
-		Set<Recipe> recipes = Data.getRecipes();
+		Set<Recipe> recipes = Data.getRecipesSorted();
 
 		this.listRows = new ProductListRow[recipes.size()];
 

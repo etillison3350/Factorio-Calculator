@@ -1,11 +1,13 @@
 package factorio.window;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -15,7 +17,10 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.tree.DefaultTreeModel;
 
+import factorio.calculator.Calculation;
+import factorio.data.Data;
 import factorio.data.Recipe;
 
 public class Window extends JFrame {
@@ -37,8 +42,8 @@ public class Window extends JFrame {
 		this.setExtendedState(Window.MAXIMIZED_BOTH);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		inputPanel = new JPanel();
-		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+		inputPanel = new JPanel(new BorderLayout());
+//		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
 
 		search = new JTextField();
 		search.getDocument().addDocumentListener(new DocumentListener() {
@@ -61,26 +66,36 @@ public class Window extends JFrame {
 			public void changedUpdate(DocumentEvent e) {}
 		});
 		search.setMaximumSize(new Dimension(search.getMaximumSize().width, search.getPreferredSize().height));
-		inputPanel.add(search);
+		inputPanel.add(search, BorderLayout.NORTH);
 
 		inputList = new ProductList();
-		((JScrollPane) inputPanel.add(new JScrollPane(inputList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER))).getVerticalScrollBar().setUnitIncrement(Recipe.ICON_SIZE);
+		JScrollPane inputScroll = new JScrollPane(inputList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		inputScroll.getVerticalScrollBar().setUnitIncrement(Recipe.ICON_SIZE);
+		inputPanel.add(inputScroll, BorderLayout.CENTER);
 
 		calculate = new JButton("Calculate");
 		calculate.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+
 			}
 		});
-		inputPanel.add(calculate);
+		inputPanel.add(calculate, BorderLayout.SOUTH);
 
-		inputPanel.add(Box.createVerticalGlue());
+//		inputPanel.add(Box.createVerticalGlue());
 
 		full = new JTree();
+		full.setRootVisible(false);
+		Recipe[] recipes = Data.getRecipes().stream().filter(r -> r.getIngredients().size() > 3).toArray(s -> new Recipe[s]);
+		Map<Recipe, Number> rates = new HashMap<>();
+		rates.put(recipes[new Random().nextInt(recipes.length)], 1);
+		((DefaultTreeModel) full.getModel()).setRoot(new Calculation(rates).getAsTreeNode());
+		for (int i = 0; i < full.getRowCount(); i++) {
+		    full.expandRow(i);
+		}
 
-		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, full);
+		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, new JScrollPane(full));
 		this.add(in_full);
 	}
 
