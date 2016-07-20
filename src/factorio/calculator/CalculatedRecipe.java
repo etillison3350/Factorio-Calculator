@@ -32,7 +32,7 @@ public class CalculatedRecipe {
 	protected CalculatedRecipe(String product, float rate) {
 		this(product, rate, new ArrayList<>());
 	}
-	
+
 	private CalculatedRecipe(String product, float rate, Collection<String> banned) {
 		this.product = product;
 		this.rate = rate;
@@ -52,19 +52,25 @@ public class CalculatedRecipe {
 				break;
 			}
 		}
+		if (this.recipe != null) this.settings = AssemblerSettings.getDefaultSettings(this.recipe.type);
+
+		calculateAssemblers();
 	}
 
 	protected CalculatedRecipe(Recipe recipe, float rate) {
 		if (recipe == null) throw new NullPointerException();
-		
+
 		this.recipe = recipe;
 		this.product = this.recipe.getResults().keySet().iterator().next();
 		this.recipeRate = rate;
 		this.rate = this.recipeRate * this.recipe.getResults().get(this.product);
+		this.settings = AssemblerSettings.getDefaultSettings(this.recipe.type);
 
 		for (String ingredient : this.recipe.getIngredients().keySet()) {
 			ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.rate * this.recipe.getIngredients().get(ingredient)));
 		}
+
+		calculateAssemblers();
 	}
 
 	public void setRate(float rate) {
@@ -92,7 +98,7 @@ public class CalculatedRecipe {
 	}
 
 	private void calculateAssemblers() {
-		if (this.recipe != null) {
+		if (this.recipe != null && this.settings != null) {
 			// The number of items produced per second by one assembler
 			float ips = recipe.getResults().get(this.product) * settings.getProductivity() / recipe.timeIn(settings.getAssembler(), settings.getSpeed());
 
@@ -112,15 +118,30 @@ public class CalculatedRecipe {
 		return assemblers;
 	}
 
-	@Override
-	public String toString() {
-		if (this.recipe == null)
-			return String.format("%s at %.6g items/s", Data.nameFor(this.product), this.rate);
-		return String.format("%s at %.6g cycles/s requires %.4f assemblers", Data.nameFor(recipe), recipeRate, assemblers);
-	}
-	
+//	@Override
+//	public String toString() {
+//		if (this.recipe == null) return String.format("%s at %.6g items/s", Data.nameFor(this.product), this.rate);
+//		return String.format("%s at %.6g cycles/s requires %.4f assemblers", Data.nameFor(recipe), recipeRate, assemblers);
+//	}
+
 	public Set<CalculatedRecipe> getIngredients() {
 		return new HashSet<>(ingredients.values());
+	}
+
+	public Recipe getRecipe() {
+		return recipe;
+	}
+
+	public float getRate() {
+		return rate;
+	}
+
+	public float getRecipeRate() {
+		return recipeRate;
+	}
+
+	public AssemblerSettings getSettings() {
+		return settings;
 	}
 
 }

@@ -8,13 +8,13 @@ import javax.swing.ImageIcon;
 
 public class Recipe {
 
-	public static final int ICON_SIZE = 24;
+	public static final int ICON_SIZE = 22, SMALL_ICON_SIZE = 16;
 	
 	public final String name, type;
 	private final Map<String, Float> results = new HashMap<>();
 	private final Map<String, Float> ingredients = new HashMap<>();
 	public final float time;
-	private final ImageIcon icon;
+	private final ImageIcon icon, smallIcon;
 
 	protected Recipe(String name, float time, Map<String, Float> ingredients, String result, Image icon) {
 		this(name, time, ingredients, result, 1, icon);
@@ -35,6 +35,7 @@ public class Recipe {
 		this.ingredients.putAll(ingredients);
 		this.results.put(result, resultCount);
 		this.icon = new ImageIcon(icon.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH));
+		this.smallIcon = new ImageIcon(icon.getScaledInstance(SMALL_ICON_SIZE, SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
 	}
 
 	protected Recipe(String name, float time, Map<String, Float> ingredients, Map<String, Float> results, Image icon) {
@@ -48,6 +49,7 @@ public class Recipe {
 		this.ingredients.putAll(ingredients);
 		this.results.putAll(results);
 		this.icon = new ImageIcon(icon.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH));
+		this.smallIcon = new ImageIcon(icon.getScaledInstance(SMALL_ICON_SIZE, SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
 	}
 
 	public Map<String, Float> getIngredients() {
@@ -82,6 +84,10 @@ public class Recipe {
 
 	public ImageIcon getIcon() {
 		return icon;
+	}
+	
+	public ImageIcon getSmallIcon() {
+		return smallIcon;
 	}
 
 }

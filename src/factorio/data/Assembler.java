@@ -26,4 +26,8 @@ public class Assembler {
 		this.allowedEffects.addAll(effects);
 	}
 	
+	public boolean canCraftCategory(String category) {
+		return categories.contains(category);
+	}
+	
 }

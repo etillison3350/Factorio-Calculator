@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -12,7 +13,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -43,6 +46,7 @@ public class ProductListRow extends JPanel {
 
 	public ProductListRow(Recipe product) {
 		super(new BorderLayout());
+		this.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
 
 		this.product = product;
 
@@ -92,7 +96,8 @@ public class ProductListRow extends JPanel {
 		r.weighty = 1;
 		right.add(text, r);
 
-		this.options = new JComboBox<>(new String[] {"items per second", "max capacity assembers"});
+		this.options = new JComboBox<>(new String[] {"items per second", "max cap. assembers"});
+		options.setFont(options.getFont().deriveFont(10.0F));
 		options.addItemListener(new ItemListener() {
 			
 			
@@ -109,7 +114,8 @@ public class ProductListRow extends JPanel {
 		r.weightx = 0;
 		right.add(options, r);
 
-		this.configure = new JButton("Configure...");
+		this.configure = new JButton(new ImageIcon("resources\\gear.png"));
+		this.configure.setMargin(new Insets(1, 1, 1, 1));
 		this.configure.addActionListener(new ActionListener() {
 
 			@Override

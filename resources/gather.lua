@@ -15,6 +15,9 @@ end
 for k, v in pairs(data.raw.furnace) do
 	table.insert(assemblers, v)
 end
+for k, v in pairs(data.raw["rocket-silo"]) do
+	table.insert(assemblers, v)
+end
 
 drills = {}
 for k, v in pairs(data.raw["mining-drill"]) do

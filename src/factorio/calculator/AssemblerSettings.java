@@ -3,6 +3,7 @@ package factorio.calculator;
 import java.util.Arrays;
 
 import factorio.data.Assembler;
+import factorio.data.Data;
 import factorio.data.Module;
 
 public class AssemblerSettings {
@@ -53,7 +54,7 @@ public class AssemblerSettings {
 	 *         </ul>
 	 */
 	public float getSpeed() {
-		return (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("speed")).reduce(1, (a, b) -> a * b);
+		return 1 + (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("speed")).sum();// .reduce(1, (a, b) -> a + b);
 	}
 
 	/**
@@ -66,7 +67,7 @@ public class AssemblerSettings {
 	 *         </ul>
 	 */
 	public float getProductivity() {
-		return (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("productivity")).reduce(1, (a, b) -> a * b);
+		return 1 + (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("productivity")).sum();// .reduce(1, (a, b) -> a + b);
 	}
 
 	/**
@@ -79,11 +80,14 @@ public class AssemblerSettings {
 	 *         </ul>
 	 */
 	public float getEfficiency() {
-		return (float) Math.max(0.2, Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).reduce(1, (a, b) -> a * b));
+		return 1 + (float) Math.max(0.2, Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
 	}
 
 	public static AssemblerSettings getDefaultSettings(String recipeType) {
 		// TODO
+		for (Assembler a : Data.getAssemblers()) {
+			if (a.canCraftCategory(recipeType)) return new AssemblerSettings(a, Data.getModules().iterator().next());
+		}
 		return null;
 	}
 }

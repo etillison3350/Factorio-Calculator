@@ -87,12 +87,15 @@ public class Window extends JFrame {
 
 		full = new JTree();
 		full.setRootVisible(false);
-		Recipe[] recipes = Data.getRecipes().stream().filter(r -> r.getIngredients().size() > 3).toArray(s -> new Recipe[s]);
+		full.setCellRenderer(new CellRenderer());
+		Recipe[] recipes = Data.getRecipes().toArray(new Recipe[Data.getRecipes().size()]);
 		Map<Recipe, Number> rates = new HashMap<>();
-		rates.put(recipes[new Random().nextInt(recipes.length)], 1);
+		for (int i = 0; i <= 16; i++) {
+			rates.put(recipes[new Random().nextInt(recipes.length)], Math.random());
+		}
 		((DefaultTreeModel) full.getModel()).setRoot(new Calculation(rates).getAsTreeNode());
 		for (int i = 0; i < full.getRowCount(); i++) {
-		    full.expandRow(i);
+			full.expandRow(i);
 		}
 
 		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, new JScrollPane(full));

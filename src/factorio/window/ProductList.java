@@ -3,7 +3,6 @@ package factorio.window;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -72,7 +71,9 @@ public class ProductList extends JPanel {
 				public int compare(ProductListRow o1, ProductListRow o2) {
 					int d = Double.compare(EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o1.product)), EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o2.product)));
 					if (d != 0) return d;
-					return Data.nameFor(o1.product).compareToIgnoreCase(Data.nameFor(o2.product));
+					d = Data.nameFor(o1.product).compareToIgnoreCase(Data.nameFor(o2.product));
+					if (d != 0) return d;
+					return o1.product.name.compareTo(o2.product.name);
 				}
 			});
 			for (ProductListRow plr : listRows) {

@@ -35,7 +35,7 @@ public class Calculation {
 	}
 	
 	private void addRecipeToParent(CalculatedRecipe recipe, DefaultMutableTreeNode parent) {
-		DefaultMutableTreeNode node = new DefaultMutableTreeNode(recipe.toString());
+		DefaultMutableTreeNode node = new DefaultMutableTreeNode(recipe);
 		parent.add(node);
 		
 		for (CalculatedRecipe r : recipe.getIngredients()) {

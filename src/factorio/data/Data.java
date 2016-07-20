@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -20,14 +22,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 public class Data {
 
+	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0");
+	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0%;-0%");
+	
 	private Data() {}
 
 	private static final Set<Recipe> recipes = new HashSet<>();
@@ -44,6 +52,9 @@ public class Data {
 	private static final Pattern MOD_PATH = Pattern.compile("__(.+?)__");
 
 	public static void load(Path factorioDir, Path... mods) throws IOException {
+		NUMBER_FORMAT.setMaximumFractionDigits(4);
+		MODULE_FORMAT.setMaximumFractionDigits(2);
+		
 		LuaTable global = JsePlatform.standardGlobals();
 
 		Path core = factorioDir.resolve("data/core");
@@ -99,6 +110,16 @@ public class Data {
 		}
 
 		global.get("dofile").call(LuaValue.valueOf(Paths.get("resources/gather.lua").toFile().getAbsolutePath()));
+
+		itemIconPaths = new HashMap<>();
+		LuaValue k = LuaValue.NIL;
+		while (true) {
+			Varargs n = global.get("icons").next(k);
+			if ((k = n.arg1()).isnil()) break;
+			LuaValue v = n.arg(2);
+
+			itemIconPaths.put(k.checkjstring(), Paths.get(resolve(v.checkjstring(), modPaths)));
+		}
 
 		LuaValue recipes = global.get("recipes");
 		for (int i = 1; i <= recipes.length(); i++) {
@@ -368,6 +389,23 @@ public class Data {
 		}
 	}
 
+	private static Map<String, Path> itemIconPaths;
+	private static Map<String, Icon> storedIcons = new HashMap<>();
+
+	public static Icon getItemIcon(String icon) {
+		Icon ret = storedIcons.get(icon);
+		if (ret != null) return ret;
+
+		if (itemIconPaths.containsKey(icon)) {
+			try {
+				ret = new ImageIcon(ImageIO.read(itemIconPaths.get(icon).toFile()).getScaledInstance(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
+				storedIcons.put(icon, ret);
+				return ret;
+			} catch (Exception e) {}
+		}
+		return new ImageIcon(new BufferedImage(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
+	}
+
 	private static Collection<String> blacklist;
 
 	public static boolean isBlacklisted(String recipeName) {
@@ -389,8 +427,27 @@ public class Data {
 				}
 			}
 		}
-		
+
 		return blacklist.contains(recipeName);
+	}
+
+	private static Map<String, Boolean> multRecipe = new HashMap<>();
+
+	public static boolean hasMultipleRecipes(String product) {
+		Boolean ret = multRecipe.get(product);
+
+		if (ret == null) {
+			int found = 0;
+			for (Recipe r : Data.getRecipes()) {
+				if (!isBlacklisted(r.name) && r.getResults().containsKey(product)) {
+					if (found++ == 1)
+						break;
+				}
+			}
+			multRecipe.put(product, found >= 2);
+			return found >= 2;
+		}
+		return ret;
 	}
 
 	public static String nameFor(String id) {
@@ -408,7 +465,9 @@ public class Data {
 
 			@Override
 			public int compare(Recipe o1, Recipe o2) {
-				return nameFor(o1).toLowerCase().compareTo(nameFor(o2).toLowerCase());
+				int ret = nameFor(o1).toLowerCase().compareTo(nameFor(o2).toLowerCase());
+				if (ret == 0) return o1.name.compareTo(o2.name);
+				return ret;
 			}
 
 		});
