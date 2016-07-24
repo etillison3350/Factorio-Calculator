@@ -1,9 +1,9 @@
 package factorio.calculator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -18,11 +18,11 @@ public class Calculation {
 		this.productRates.putAll(productRates);
 		
 		for (Recipe recipe : productRates.keySet()) {
-			result.add(new CalculatedRecipe(recipe, productRates.get(recipe).floatValue()));
+			result.add(new CalculatedRecipe(recipe, productRates.get(recipe).floatValue(), false));
 		}
 	}
 	
-	private List<CalculatedRecipe> result = new ArrayList<>();
+	private Set<CalculatedRecipe> result = new TreeSet<>();
 	
 	public TreeNode getAsTreeNode() {
 		DefaultMutableTreeNode ret = new DefaultMutableTreeNode();
@@ -33,8 +33,8 @@ public class Calculation {
 		
 		return ret;
 	}
-	
-	private void addRecipeToParent(CalculatedRecipe recipe, DefaultMutableTreeNode parent) {
+
+	private static void addRecipeToParent(CalculatedRecipe recipe, DefaultMutableTreeNode parent) {
 		DefaultMutableTreeNode node = new DefaultMutableTreeNode(recipe);
 		parent.add(node);
 		
@@ -43,4 +43,31 @@ public class Calculation {
 		}
 	}
 
+	public TreeNode getTotalTreeNode() {
+		DefaultMutableTreeNode ret = new DefaultMutableTreeNode();
+		
+		Map<String, float[]> totals = new HashMap<>();
+		
+		for (CalculatedRecipe r : result) {
+			addRecipeToTotals(r, totals);
+		}
+		
+		// TODO create new class for totals
+		return null;
+	}
+	
+	private static void addRecipeToTotals(CalculatedRecipe recipe, Map<String, float[]> totals) {
+		// TODO make better
+		
+		float[] total = totals.get(recipe.getRecipe().name);
+		if (total == null) {
+			totals.put(recipe.getRecipe().name, new float[] {recipe.getRecipeRate(), recipe.getAssemblers()});
+		} else {
+			total[0] += recipe.getRecipeRate();
+			total[1] += recipe.getAssemblers();
+		}
+		
+		for (CalculatedRecipe r : recipe.getIngredients())
+			addRecipeToTotals(r, totals);
+	}
 }

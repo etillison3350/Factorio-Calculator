@@ -1,6 +1,8 @@
 package factorio.calculator;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import factorio.data.Assembler;
 import factorio.data.Data;
@@ -8,6 +10,8 @@ import factorio.data.Module;
 
 public class AssemblerSettings {
 
+	private static Map<String, AssemblerSettings> defaultSettings = new HashMap<>(); // TODO implement
+	
 	private Assembler assembler;
 	private Module[] modules;
 
@@ -76,18 +80,63 @@ public class AssemblerSettings {
 	 * <br>
 	 * <code>&nbsp;public double getEfficiency()</code><br>
 	 * <br>
-	 * @return the efficiency multiplier of this {@code AssemblerSettings} or 0.2 (the minimum energy consumption), whichever is higher.
+	 * @return the greater of the efficiency multiplier of this {@code AssemblerSettings} and 0.2 (the minimum energy consumption).
 	 *         </ul>
 	 */
 	public float getEfficiency() {
-		return 1 + (float) Math.max(0.2, Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
+		return (float) Math.max(0.2, 1 + Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
 	}
 
-	public static AssemblerSettings getDefaultSettings(String recipeType) {
+	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
 		// TODO
 		for (Assembler a : Data.getAssemblers()) {
-			if (a.canCraftCategory(recipeType)) return new AssemblerSettings(a, Data.getModules().iterator().next());
+			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients) return new AssemblerSettings(a, Data.getModules().iterator().next());
 		}
 		return null;
+	}
+
+	public String getBonusString() {
+		float speed = this.getSpeed() - 1;
+		float productivity = this.getProductivity() - 1;
+		float efficiency = this.getEfficiency() - 1;
+
+		boolean s = Math.abs(speed) > 0.0001;
+		boolean p = Math.abs(productivity) > 0.0001;
+		boolean e = Math.abs(efficiency) > 0.0001;
+
+		if (s || p || e) {
+			String bonus = " (";
+
+			if (s) bonus += "<font color=\"#0457FF\">" + Data.MODULE_FORMAT.format(speed) + "</font>";
+			if (p) bonus += (s ? ", " : "") + "<font color=\"#AD4ECC\">" + Data.MODULE_FORMAT.format(productivity) + "</font>";
+			if (e) bonus += (s || p ? ", " : "") + "<font color=\"#4C8818\">" + Data.MODULE_FORMAT.format(efficiency) + "</font>";
+			
+			return bonus + ")";
+		}
+		return "";
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((assembler == null) ? 0 : assembler.hashCode());
+		result = prime * result + Arrays.hashCode(modules);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		AssemblerSettings other = (AssemblerSettings) obj;
+		if (assembler == null) {
+			if (other.assembler != null) return false;
+		} else if (!assembler.equals(other.assembler)) {
+			return false;
+		}
+		if (!Arrays.equals(modules, other.modules)) return false;
+		return true;
 	}
 }

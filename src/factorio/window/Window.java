@@ -22,6 +22,7 @@ import javax.swing.tree.DefaultTreeModel;
 import factorio.calculator.Calculation;
 import factorio.data.Data;
 import factorio.data.Recipe;
+import factorio.window.treecell.CellRenderer;
 
 public class Window extends JFrame {
 
@@ -99,6 +100,8 @@ public class Window extends JFrame {
 		}
 
 		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, new JScrollPane(full));
+		in_full.setDividerSize(7);
+		in_full.setDividerLocation(485);
 		this.add(in_full);
 	}
 

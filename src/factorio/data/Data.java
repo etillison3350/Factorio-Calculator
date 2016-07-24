@@ -1,6 +1,7 @@
 package factorio.data;
 
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +22,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
@@ -35,6 +35,8 @@ public class Data {
 
 	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0");
 	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0%;-0%");
+	
+	public static final Icon ICON_BLANK = new ImageIcon(new BufferedImage(1, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
 	
 	private Data() {}
 
@@ -158,7 +160,7 @@ public class Data {
 					Image icon;
 					try {
 						String iconPath = resolve(luaIcon.checkjstring(), modPaths);
-						icon = ImageIO.read(Paths.get(iconPath).toFile());
+						icon = Toolkit.getDefaultToolkit().getImage(Paths.get(iconPath).toUri().toURL());
 					} catch (Exception e) {
 						icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
 					}
@@ -180,7 +182,7 @@ public class Data {
 					Image icon;
 					try {
 						String iconPath = resolve(luaIcon.checkjstring(), modPaths);
-						icon = ImageIO.read(Paths.get(iconPath).toFile());
+						icon = Toolkit.getDefaultToolkit().getImage(Paths.get(iconPath).toUri().toURL());
 					} catch (Exception e) {
 						icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
 					}
@@ -230,7 +232,7 @@ public class Data {
 				Image icon;
 				try {
 					String iconPath = resolve(luaIcon.checkjstring(), modPaths);
-					icon = ImageIO.read(Paths.get(iconPath).toFile());
+					icon = Toolkit.getDefaultToolkit().getImage(Paths.get(iconPath).toUri().toURL());
 				} catch (Exception e) {
 					icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
 				}
@@ -398,7 +400,7 @@ public class Data {
 
 		if (itemIconPaths.containsKey(icon)) {
 			try {
-				ret = new ImageIcon(ImageIO.read(itemIconPaths.get(icon).toFile()).getScaledInstance(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
+				ret = new ImageIcon(Toolkit.getDefaultToolkit().getImage(itemIconPaths.get(icon).toUri().toURL()).getScaledInstance(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
 				storedIcons.put(icon, ret);
 				return ret;
 			} catch (Exception e) {}
