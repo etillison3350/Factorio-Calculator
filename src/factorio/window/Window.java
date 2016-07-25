@@ -2,11 +2,10 @@ package factorio.window;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,18 +16,19 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import factorio.calculator.Calculation;
-import factorio.data.Data;
 import factorio.data.Recipe;
 import factorio.window.treecell.CellRenderer;
+import factorio.window.treecell.TotalHeader;
 
 public class Window extends JFrame {
 
 	private static final long serialVersionUID = -377970844785993226L;
 
-	private JSplitPane in_full, full_total;
+	private JSplitPane in_out, full_total;
 
 	private JPanel inputPanel;
 	private JTree full, total;
@@ -79,30 +79,40 @@ public class Window extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				Map<Recipe, Number> rates = inputList.getRates();
+				
+				Calculation calc = new Calculation(rates);
+				
+				((DefaultTreeModel) full.getModel()).setRoot(calc.getAsTreeNode());
+				for (int i = 0; i < full.getRowCount(); i++) {
+					full.expandRow(i);
+				}
+				
+				((DefaultTreeModel) total.getModel()).setRoot(calc.getTotalTreeNode());
+				for (int i = 0; i < total.getRowCount(); i++) {
+					total.expandRow(i);
+				}
 			}
 		});
 		inputPanel.add(calculate, BorderLayout.SOUTH);
 
-//		inputPanel.add(Box.createVerticalGlue());
-
-		full = new JTree();
+		full = new JTree(new DefaultMutableTreeNode());
 		full.setRootVisible(false);
 		full.setCellRenderer(new CellRenderer());
-		Recipe[] recipes = Data.getRecipes().toArray(new Recipe[Data.getRecipes().size()]);
-		Map<Recipe, Number> rates = new HashMap<>();
-		for (int i = 0; i <= 16; i++) {
-			rates.put(recipes[new Random().nextInt(recipes.length)], Math.random());
-		}
-		((DefaultTreeModel) full.getModel()).setRoot(new Calculation(rates).getAsTreeNode());
-		for (int i = 0; i < full.getRowCount(); i++) {
-			full.expandRow(i);
-		}
 
-		in_full = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, new JScrollPane(full));
-		in_full.setDividerSize(7);
-		in_full.setDividerLocation(485);
-		this.add(in_full);
+		total = new JTree(new DefaultMutableTreeNode());
+		total.setRootVisible(false);
+		total.setCellRenderer(new CellRenderer());
+		JScrollPane totalScroll = new JScrollPane(total);
+		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false));
+		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(full), totalScroll);
+		full_total.setDividerSize(7);
+		full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);
+
+		in_out = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, full_total);
+		in_out.setDividerSize(7);
+		in_out.setDividerLocation(492);
+		this.add(in_out);
 	}
 
 }

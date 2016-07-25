@@ -6,8 +6,6 @@ import java.awt.Font;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
-import factorio.data.Data;
-
 public class TotalHeader implements TreeCell {
 
 	public final String text;
@@ -20,9 +18,12 @@ public class TotalHeader implements TreeCell {
 
 	@Override
 	public Component getTreeCellRendererComponent(boolean selected) {
-		JLabel label = new JLabel(text, Data.ICON_BLANK, SwingConstants.LEADING);
+		JLabel label = new JLabel(text, TreeCell.ICON_BLANK, SwingConstants.LEADING);
 		label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12 + 2 * headerLevel));
-		return null;
+		
+		TreeCell.addBorders(label, selected);
+		
+		return label;
 	}
 
 }

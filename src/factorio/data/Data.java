@@ -33,10 +33,9 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 
 public class Data {
 
-	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0");
-	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0%;-0%");
-	
-	public static final Icon ICON_BLANK = new ImageIcon(new BufferedImage(1, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
+	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0.####");
+	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0.##%;-0.##%");
+	private static final NumberFormat ENERGY_FORMAT = new DecimalFormat("##0.###E0W");
 	
 	private Data() {}
 
@@ -54,9 +53,6 @@ public class Data {
 	private static final Pattern MOD_PATH = Pattern.compile("__(.+?)__");
 
 	public static void load(Path factorioDir, Path... mods) throws IOException {
-		NUMBER_FORMAT.setMaximumFractionDigits(4);
-		MODULE_FORMAT.setMaximumFractionDigits(2);
-		
 		LuaTable global = JsePlatform.standardGlobals();
 
 		Path core = factorioDir.resolve("data/core");
@@ -459,6 +455,18 @@ public class Data {
 	public static String nameFor(Recipe recipe) {
 		String ret = nameFor(recipe.name);
 		if (ret == null) return nameFor(recipe.getResults().keySet().iterator().next());
+		return ret;
+	}
+	
+	public static String formatEnergy(double watts) {
+		ENERGY_FORMAT.setMaximumFractionDigits(2);
+		String ret = ENERGY_FORMAT.format(watts);
+		
+		ret = ret.replace("E0", "");
+		ret = ret.replace("E3", "k");
+		ret = ret.replace("E6", "M");
+		ret = ret.replace("E9", "G");
+		
 		return ret;
 	}
 

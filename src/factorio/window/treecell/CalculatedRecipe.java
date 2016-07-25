@@ -1,4 +1,4 @@
-package factorio.calculator;
+package factorio.window.treecell;
 
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -10,15 +10,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 
+import factorio.calculator.AssemblerSettings;
 import factorio.data.Data;
 import factorio.data.Recipe;
-import factorio.window.treecell.TreeCell;
 
 public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> {
 
@@ -41,11 +39,11 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	private AssemblerSettings settings;
 	private Map<String, CalculatedRecipe> ingredients = new TreeMap<>();
 
-	protected CalculatedRecipe(String product, float rate) {
+	public CalculatedRecipe(String product, float rate) {
 		this(product, rate, false);
 	}
 	
-	protected CalculatedRecipe(String product, float rate, boolean isFuel) {
+	public CalculatedRecipe(String product, float rate, boolean isFuel) {
 		this(product, rate, new ArrayList<>(), isFuel);
 	}
 
@@ -70,12 +68,12 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 				break;
 			}
 		}
-		if (this.recipe != null) this.settings = AssemblerSettings.getDefaultSettings(this.recipe.type, this.recipe.getIngredients().size());
+		if (this.recipe != null) this.settings = AssemblerSettings.getDefaultSettings(this.recipe);
 
 		calculateAssemblers();
 	}
 	
-	protected CalculatedRecipe(Recipe recipe, float rate, boolean isFuel) {
+	public CalculatedRecipe(Recipe recipe, float rate, boolean isFuel) {
 		if (recipe == null) throw new NullPointerException();
 
 		this.isFuel = isFuel;
@@ -84,7 +82,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		this.product = this.recipe.getResults().keySet().iterator().next();
 		this.recipeRate = rate;
 		this.rate = this.recipeRate * this.recipe.getResults().get(this.product);
-		this.settings = AssemblerSettings.getDefaultSettings(this.recipe.type, this.recipe.getIngredients().size());
+		this.settings = AssemblerSettings.getDefaultSettings(this.recipe);
 
 		for (String ingredient : this.recipe.getIngredients().keySet()) {
 			ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.rate * this.recipe.getIngredients().get(ingredient)));
@@ -218,7 +216,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 
 			assemblerStr += this.settings.getBonusString();
 
-			ret.add(new JLabel(assemblerStr + " </html>", Data.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(assemblerStr + " </html>", TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
 
 		return ret;

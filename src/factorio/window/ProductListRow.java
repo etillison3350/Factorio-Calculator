@@ -21,6 +21,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -35,7 +36,7 @@ public class ProductListRow extends JPanel {
 
 	private static final long serialVersionUID = -5835567095011127426L;
 
-	public final Recipe product;
+	public final Recipe recipe;
 
 	private final JLabel label;
 	private final JTextField text;
@@ -44,14 +45,17 @@ public class ProductListRow extends JPanel {
 
 	private AssemblerSettings assemblerSettings;
 
-	public ProductListRow(Recipe product) {
+	private float value = 0;
+
+	public ProductListRow(Recipe recipe) {
 		super(new BorderLayout());
-		this.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
+		this.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 0));
 
-		this.product = product;
+		this.recipe = recipe;
+		this.assemblerSettings = AssemblerSettings.getDefaultSettings(recipe);
 
-		this.label = new JLabel(Data.nameFor(product));
-		this.label.setIcon(product.getIcon());
+		this.label = new JLabel(Data.nameFor(recipe));
+		this.label.setIcon(recipe.getIcon());
 
 		this.add(this.label, BorderLayout.LINE_START);
 
@@ -60,15 +64,21 @@ public class ProductListRow extends JPanel {
 		GridBagConstraints r = new GridBagConstraints();
 
 		text = new JTextField(8);
+		text.setHorizontalAlignment(SwingConstants.TRAILING);
 		text.addFocusListener(new FocusAdapter() {
 
 			@Override
 			public void focusLost(FocusEvent e) {
 				try {
-					if (!text.getText().isEmpty()) Evaluator.evaluate(text.getText());
+					if (!text.getText().isEmpty()) {
+						value = (float) Evaluator.evaluate(text.getText());
+					} else {
+						value = 0;
+					}
 					text.setBackground(Color.WHITE);
 				} catch (IllegalArgumentException exception) {
 					text.setBackground(new Color(255, 192, 192));
+					value = 0;
 				}
 			}
 
@@ -85,30 +95,29 @@ public class ProductListRow extends JPanel {
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
 				fb.replace(offset, length, text.replaceAll("[^\\d\\.\\-\\+\\*\\/]+", ""), attrs);
 			}
-			
+
 		});
 		text.setDocument(doc);
 
 		r.fill = GridBagConstraints.HORIZONTAL;
 		r.gridx = 0;
 		r.gridy = 0;
+		r.insets = new Insets(0, 1, 0, 0);
 		r.weightx = 1;
 		r.weighty = 1;
 		right.add(text, r);
 
-		this.options = new JComboBox<>(new String[] {"items per second", "max cap. assembers"});
-		options.setFont(options.getFont().deriveFont(10.0F));
+		this.options = new JComboBox<>(new String[] {"items per second", "cycles per second", "max cap. assembers"});
 		options.addItemListener(new ItemListener() {
-			
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() != ItemEvent.SELECTED) return;
-				
-				configure.setEnabled(options.getSelectedIndex() == 1);
+
+				configure.setEnabled(options.getSelectedIndex() == 2);
 			}
 		});
-		options.setFont(this.options.getFont().deriveFont(Font.PLAIN));
+		options.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
 		r.gridx = 1;
 		r.weightx = 0;
@@ -123,17 +132,36 @@ public class ProductListRow extends JPanel {
 				// TODO: Add action listener
 			}
 		});
-		this.configure.setFont(this.configure.getFont().deriveFont(Font.PLAIN));
 		this.configure.setEnabled(false);
-		
+
 		r.gridx = 2;
 		right.add(configure, r);
 
 		right.setOpaque(false);
-		
+
 		this.add(right, BorderLayout.LINE_END);
 
 		this.add(Box.createHorizontalGlue());
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>getRate</i></b><br>
+	 * <br>
+	 * <code>&nbsp;public float getRate()</code><br>
+	 * <br>
+	 * @return The number of recipe cycles per second the user has specified in this <code>ProductListRow</code>'s text field.
+	 * </ul>
+	 */
+	public float getRate() {
+		switch (options.getSelectedIndex()) {
+			case 1:
+				return value;
+			case 2:
+				return 1 / (value * assemblerSettings.getSpeed() * recipe.time);
+			default:
+				return value / (float) recipe.getResults().values().stream().mapToDouble(f -> (double) f).sum();
+		}
 	}
 
 }

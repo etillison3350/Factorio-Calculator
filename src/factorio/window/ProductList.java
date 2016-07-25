@@ -4,7 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -69,15 +71,15 @@ public class ProductList extends JPanel {
 
 				@Override
 				public int compare(ProductListRow o1, ProductListRow o2) {
-					int d = Double.compare(EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o1.product)), EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o2.product)));
+					int d = Double.compare(EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o1.recipe)), EditDistance.distance(ProductList.this.searchKey, Data.nameFor(o2.recipe)));
 					if (d != 0) return d;
-					d = Data.nameFor(o1.product).compareToIgnoreCase(Data.nameFor(o2.product));
+					d = Data.nameFor(o1.recipe).compareToIgnoreCase(Data.nameFor(o2.recipe));
 					if (d != 0) return d;
-					return o1.product.name.compareTo(o2.product.name);
+					return o1.recipe.name.compareTo(o2.recipe.name);
 				}
 			});
 			for (ProductListRow plr : listRows) {
-				double ed = EditDistance.distance(searchKey, Data.nameFor(plr.product));
+				double ed = EditDistance.distance(searchKey, Data.nameFor(plr.recipe));
 				if (ed < Double.POSITIVE_INFINITY) { // TODO set value
 					rows.add(plr);
 				}
@@ -95,5 +97,15 @@ public class ProductList extends JPanel {
 			container.revalidate();
 			container.repaint();
 		}
+	}
+	
+	public Map<Recipe, Number> getRates() {
+		Map<Recipe, Number> ret = new HashMap<>();
+		for (ProductListRow row : listRows) {
+			float rate = row.getRate();
+			if (rate > 0) ret.put(row.recipe, rate);
+		}
+		
+		return ret;
 	}
 }

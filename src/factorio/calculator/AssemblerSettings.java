@@ -1,17 +1,21 @@
 package factorio.calculator;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import factorio.data.Assembler;
 import factorio.data.Data;
 import factorio.data.Module;
+import factorio.data.Recipe;
 
-public class AssemblerSettings {
+public class AssemblerSettings implements Comparable<AssemblerSettings> {
 
 	private static Map<String, AssemblerSettings> defaultSettings = new HashMap<>(); // TODO implement
-	
+
 	private Assembler assembler;
 	private Module[] modules;
 
@@ -87,12 +91,16 @@ public class AssemblerSettings {
 		return (float) Math.max(0.2, 1 + Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
 	}
 
+	public static AssemblerSettings getDefaultSettings(Recipe recipe) {
+		return getDefaultSettings(recipe.type, recipe.getIngredients().size());
+	}
+	
 	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
 		// TODO
 		for (Assembler a : Data.getAssemblers()) {
-			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients) return new AssemblerSettings(a, Data.getModules().iterator().next());
+			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients && Math.random() < 0.5) return new AssemblerSettings(a, Data.getModules().stream().limit(a.modules).toArray(size -> new Module[size]));
 		}
-		return null;
+		return getDefaultSettings(recipeType, ingredients);
 	}
 
 	public String getBonusString() {
@@ -110,18 +118,20 @@ public class AssemblerSettings {
 			if (s) bonus += "<font color=\"#0457FF\">" + Data.MODULE_FORMAT.format(speed) + "</font>";
 			if (p) bonus += (s ? ", " : "") + "<font color=\"#AD4ECC\">" + Data.MODULE_FORMAT.format(productivity) + "</font>";
 			if (e) bonus += (s || p ? ", " : "") + "<font color=\"#4C8818\">" + Data.MODULE_FORMAT.format(efficiency) + "</font>";
-			
+
 			return bonus + ")";
 		}
 		return "";
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((assembler == null) ? 0 : assembler.hashCode());
-		result = prime * result + Arrays.hashCode(modules);
+		List<Module> m1 = Arrays.asList(modules);
+		Collections.sort(m1, Comparator.comparingInt(m -> m.hashCode()));
+		result = prime * result + m1.hashCode();
 		return result;
 	}
 
@@ -136,7 +146,20 @@ public class AssemblerSettings {
 		} else if (!assembler.equals(other.assembler)) {
 			return false;
 		}
-		if (!Arrays.equals(modules, other.modules)) return false;
+		
+		List<Module> m1 = Arrays.asList(modules);
+		List<Module> m2 = Arrays.asList(other.modules);
+		Collections.sort(m1, Comparator.comparingInt(m -> m.hashCode()));
+		Collections.sort(m2, Comparator.comparingInt(m -> m.hashCode()));
+		
+		if (!m1.equals(m2)) return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(AssemblerSettings o) {
+		int d = this.assembler.compareCategoriesTo(o.assembler);
+		if (d != 0) return d;
+		return Double.compare(this.assembler.speed * this.getSpeed(), o.assembler.speed * o.getSpeed());
 	}
 }

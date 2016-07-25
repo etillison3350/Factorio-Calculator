@@ -3,6 +3,7 @@ package factorio.window.treecell;
 import java.awt.Component;
 
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 public class CellRenderer extends DefaultTreeCellRenderer {
@@ -11,7 +12,7 @@ public class CellRenderer extends DefaultTreeCellRenderer {
 
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-		return value instanceof TreeCell ? ((TreeCell) value).getTreeCellRendererComponent(sel) : super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+		return value instanceof DefaultMutableTreeNode && ((DefaultMutableTreeNode) value).getUserObject() instanceof TreeCell ? ((TreeCell) ((DefaultMutableTreeNode) value).getUserObject()).getTreeCellRendererComponent(sel) : super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 	}
-	
+
 }
