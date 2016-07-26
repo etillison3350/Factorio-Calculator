@@ -33,9 +33,7 @@ public interface TreeCell {
 	 */
 	public static void addBorders(JComponent c, boolean sel, boolean hasFocus) {
 		c.setOpaque(true);
-
 		c.setBackground(UIManager.getColor(sel ? "Tree.selectionBackground" : "Tree.background"));
-
 		c.setBorder(hasFocus ? BorderFactory.createLineBorder(UIManager.getColor("Tree.selectionBorderColor")) : BorderFactory.createEmptyBorder(1, 1, 1, 1));
 	}
 	

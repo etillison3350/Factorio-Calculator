@@ -28,8 +28,7 @@ public class TotalHeader implements TreeCell {
 
 	@Override
 	public String getRawString() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.text;
 	}
 
 }

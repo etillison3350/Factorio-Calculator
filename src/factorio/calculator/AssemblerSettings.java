@@ -99,7 +99,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
 		// TODO
 		for (Assembler a : Data.getAssemblers()) {
-			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients && Math.random() < 0.5) return new AssemblerSettings(a, Data.getModules().stream().limit(a.modules).toArray(size -> new Module[size]));
+			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients && Math.random() < 0.5) return new AssemblerSettings(a, Data.getModules().stream().limit((long) Math.floor(a.modules * Math.random())).toArray(size -> new Module[size]));
 		}
 		return getDefaultSettings(recipeType, ingredients);
 	}

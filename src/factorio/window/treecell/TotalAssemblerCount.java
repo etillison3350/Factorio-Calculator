@@ -41,8 +41,9 @@ public class TotalAssemblerCount implements TreeCell, Comparable<TotalAssemblerC
 	
 	@Override
 	public String getRawString() {
-		// TODO Auto-generated method stub
-		return null;
+		String power = assembler.getAssembler().coalPowered ? "" : " requires " + Util.formatEnergy((double) assemblerCount * assembler.getAssembler().energy);
+
+		return String.format("%s %s%s%s", Util.NUMBER_FORMAT.format(assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(false), power);
 	}
 
 	@Override

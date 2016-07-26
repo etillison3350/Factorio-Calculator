@@ -107,14 +107,15 @@ public class ProductListRow extends JPanel {
 		r.weighty = 1;
 		right.add(text, r);
 
-		this.options = new JComboBox<>(new String[] {"items per second", "cycles per second", "max cap. assembers"});
+		String[] optionArray = recipe.getResults().size() == 1 && Math.abs(recipe.getResults().values().iterator().next() - 1) < 0.0001 ? new String[] {"items per second", "max cap. assembers"} : new String[] {"items per second", "cycles per second", "max cap. assembers"};
+		this.options = new JComboBox<>(optionArray);
 		options.addItemListener(new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() != ItemEvent.SELECTED) return;
 
-				configure.setEnabled(options.getSelectedIndex() == 2);
+				configure.setEnabled(options.getSelectedIndex() == optionArray.length);
 			}
 		});
 		options.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
@@ -154,10 +155,10 @@ public class ProductListRow extends JPanel {
 	 * </ul>
 	 */
 	public float getRate() {
-		switch (options.getSelectedIndex()) {
-			case 1:
+		switch (options.getSelectedItem().toString()) {
+			case "cycles per second":
 				return value;
-			case 2:
+			case "max cap. assembers":
 				return 1 / (value * assemblerSettings.getSpeed() * recipe.time);
 			default:
 				return value / (float) recipe.getResults().values().stream().mapToDouble(f -> (double) f).sum();

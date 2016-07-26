@@ -115,10 +115,10 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 		TreeCell.addBorders(ret, selected, hasFocus);
 
 		if (this.item != null) {
-			String prod = String.format("<html><b>%s</b> at <b>%s</b> items/s", Data.nameFor(this.item), Util.NUMBER_FORMAT.format(this.itemRate));
+			String prod = String.format("<html><b>%s</b> at <b>%s/s", Data.nameFor(this.item), Util.formatPlural(this.itemRate, "</b> item"));
 			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) {
 				prod += " (using ";
-				ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s)</html>", Data.nameFor(this.getRecipe()), Util.NUMBER_FORMAT.format(this.recipeRate)), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+				ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)</html>", Data.nameFor(this.getRecipe()), Util.formatPlural(this.recipeRate, "</b> cycle")), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 			}
 			ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.item), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
@@ -127,18 +127,41 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 			}
 		} else if (this.recipe != null) {
 			ret.add(new JLabel("using ", TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s%s</html>", Data.nameFor(this.getRecipe()), Util.NUMBER_FORMAT.format(this.recipeRate), assembler != null ? String.format(" requires <b>%s</b> %s %s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s%s</html>", Data.nameFor(this.getRecipe()), Util.formatPlural(this.recipeRate, "</b> cycle"), assembler != null ? String.format(" requires <b>%s</b> %s %s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		} else if (this.assembler != null) {
-			ret.add(new JLabel(String.format("<html><b>%s</b> %s %s</html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
 
 		return ret;
 	}
-	
+
 	@Override
 	public String getRawString() {
-		// TODO Auto-generated method stub
-		return null;
+		if (this.item != null) {
+			String ret = String.format("%s at %s/s", Data.nameFor(this.item), Util.formatPlural(this.itemRate, "item"));
+
+			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) {
+				ret += String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle"));
+			}
+
+			if (this.assembler != null) {
+				ret += String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+			}
+			
+			return ret;
+		} else if (this.recipe != null) {
+			String ret = String.format("using %s at %s/s", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle"));
+			
+			if (this.assembler != null) {
+				ret += String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+			}
+			
+			return ret;
+		} else if (this.assembler != null) {
+			return String.format("%s %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+		}
+
+		return "";
 	}
 
 	@Override

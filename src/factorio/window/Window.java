@@ -7,10 +7,12 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -116,15 +118,94 @@ public class Window extends JFrame {
 				TreePath[] selected = full.getSelectionPaths();
 				if (selected == null || selected.length <= 0) return;
 
-				List<TreePath> min = Arrays.stream(selected).collect(ArrayList::new, (list, path) -> {
-					if (list.isEmpty()) {
-						list.add(path);
+				Set<TreePath> min = Arrays.stream(selected).collect(HashSet::new, (set, path) -> {
+					if (set.isEmpty()) {
+						set.add(path);
 					} else {
-						if (path.getPathCount() < list.get(0).getPathCount()) list.clear();
-						if (path.getPathCount() <= list.get(0).getPathCount()) list.add(path);
+						if (path.getPathCount() < set.iterator().next().getPathCount()) set.clear();
+						if (path.getPathCount() <= set.iterator().next().getPathCount()) set.add(path);
 					}
-				}, ArrayList::addAll);
+				}, HashSet::addAll);
 
+				boolean shouldIndent = true;
+
+				outer: for (TreePath path : selected) {
+					if (min.contains(path)) continue;
+					for (TreePath p : min) {
+						if (p.isDescendant(path)) continue outer;
+					}
+
+					shouldIndent = false;
+					break;
+				}
+
+				String copy = "";
+				for (TreePath path : selected) {
+					if (!copy.isEmpty()) copy += "\n";
+					if (shouldIndent) {
+						for (int n = min.iterator().next().getPathCount(); n < path.getPathCount(); n++) {
+							copy += "\t";
+						}
+					}
+					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+						if (node.getUserObject() instanceof TreeCell) {
+							copy += ((TreeCell) node.getUserObject()).getRawString();
+						} else {
+							copy += node.getUserObject().toString();
+						}
+					} else {
+						copy += path.getLastPathComponent().toString();
+					}
+				}
+
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copy), null);
+			}
+		});
+		full.setRootVisible(false);
+		full.setShowsRootHandles(true);
+		full.setCellRenderer(new CellRenderer());
+
+		total = new JTree(new DefaultMutableTreeNode());
+		total.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "copy");
+		total.getActionMap().put("copy", new AbstractAction() {
+
+			private static final long serialVersionUID = -3232571785198520875L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TreePath[] selectedPaths = total.getSelectionPaths();
+				if (selectedPaths == null || selectedPaths.length <= 0) return;
+
+				Set<TreePath> selected = new TreeSet<>(Comparator.comparing(path -> total.getRowForPath(path)));
+				Arrays.stream(selectedPaths).forEach(selected::add);
+				Set<TreePath> min = new HashSet<>();
+
+				DefaultMutableTreeNode root = (DefaultMutableTreeNode) ((DefaultTreeModel) total.getModel()).getRoot();
+				for (int c = 0; c < root.getChildCount(); c++) {
+					TreePath newPath = new TreePath(new Object[] {root, root.getChildAt(c)});
+					for (TreePath path : selectedPaths) {
+						if (newPath.isDescendant(path)) {
+							min.add(newPath);
+							break;
+						}
+					}
+				}
+				
+				boolean indentOne = min.size() > 1;
+				if (indentOne) {
+					selected.addAll(min);
+				} else {
+					selected.forEach(path -> {
+						if (min.isEmpty()) {
+							min.add(path);
+						} else {
+							if (path.getPathCount() < min.iterator().next().getPathCount()) min.clear();
+							if (path.getPathCount() <= min.iterator().next().getPathCount()) min.add(path);
+						}
+					});
+				}
+				
 				boolean shouldIndent = true;
 
 				outer: for (TreePath path : selected) {
@@ -140,30 +221,34 @@ public class Window extends JFrame {
 				String copy = "";
 				for (TreePath path : selected) {
 					if (!copy.isEmpty()) copy += "\n";
-					if (shouldIndent) {
-						for (int n = min.get(0).getPathCount(); n < path.getPathCount(); n++) {
-							copy += "\t";
-						}
-					}
+					
+					String line = "";
+					boolean isHeader = false;
 					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
 						DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 						if (node.getUserObject() instanceof TreeCell) {
-							copy += ((TreeCell) node.getUserObject()).getRawString();
+							isHeader = node.getUserObject() instanceof TotalHeader;
+							line += ((TreeCell) node.getUserObject()).getRawString();
 						} else {
-							copy += node.getUserObject().toString();
+							line += node.getUserObject().toString();
 						}
 					} else {
-						copy += path.getLastPathComponent().toString();
+						line += path.getLastPathComponent().toString();
 					}
+
+					
+					if (shouldIndent) {
+						for (int n = min.iterator().next().getPathCount(); n < path.getPathCount() + (indentOne && !isHeader ? 1 : 0); n++) {
+							line = "\t" + line;
+						}
+					}
+					
+					copy += line;
 				}
-				
+
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copy), null);
 			}
 		});
-		full.setRootVisible(false);
-		full.setCellRenderer(new CellRenderer());
-
-		total = new JTree(new DefaultMutableTreeNode());
 		total.setRootVisible(false);
 		total.setCellRenderer(new CellRenderer());
 		JScrollPane totalScroll = new JScrollPane(total);
@@ -179,5 +264,4 @@ public class Window extends JFrame {
 
 		this.setJMenuBar(new MenuBar());
 	}
-
 }
