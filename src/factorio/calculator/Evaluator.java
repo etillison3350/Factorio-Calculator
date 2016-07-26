@@ -11,7 +11,7 @@ public class Evaluator {
 
 	private Evaluator() {}
 
-	private static final Pattern TOKEN = Pattern.compile("[\\+\\-\\*\\/\\(\\)]|(?:\\-?\\d+)");
+	private static final Pattern TOKEN = Pattern.compile("[\\+\\-\\*\\/\\(\\)]|(?:\\-?(?:\\d*\\.)?\\d+)");
 
 	public static List<String> toPostfix(String infix) {
 		ArrayDeque<String> stack = new ArrayDeque<>(), oper = new ArrayDeque<>();
