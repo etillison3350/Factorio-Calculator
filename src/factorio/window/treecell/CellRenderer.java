@@ -12,7 +12,7 @@ public class CellRenderer extends DefaultTreeCellRenderer {
 
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-		return value instanceof DefaultMutableTreeNode && ((DefaultMutableTreeNode) value).getUserObject() instanceof TreeCell ? ((TreeCell) ((DefaultMutableTreeNode) value).getUserObject()).getTreeCellRendererComponent(sel) : super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+		return value instanceof DefaultMutableTreeNode && ((DefaultMutableTreeNode) value).getUserObject() instanceof TreeCell ? ((TreeCell) ((DefaultMutableTreeNode) value).getUserObject()).getTreeCellRendererComponent(sel, hasFocus) : super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 	}
 
 }

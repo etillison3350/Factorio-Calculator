@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import factorio.Util;
 import factorio.calculator.AssemblerSettings;
 import factorio.data.Data;
 import factorio.data.Recipe;
@@ -109,29 +110,35 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 	}
 
 	@Override
-	public Component getTreeCellRendererComponent(boolean selected) {
+	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus) {
 		JPanel ret = new JPanel(new FlowLayout(FlowLayout.LEADING, 1, 1));
-		TreeCell.addBorders(ret, selected);
+		TreeCell.addBorders(ret, selected, hasFocus);
 
 		if (this.item != null) {
-			String prod = String.format("<html><b>%s</b> at <b>%s</b> items/s", Data.nameFor(this.item), Data.NUMBER_FORMAT.format(this.itemRate));
-			if (this.recipe != null && Data.hasMultipleRecipes(this.item)) {
+			String prod = String.format("<html><b>%s</b> at <b>%s</b> items/s", Data.nameFor(this.item), Util.NUMBER_FORMAT.format(this.itemRate));
+			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) {
 				prod += " (using ";
-				ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s)</html>", Data.nameFor(this.getRecipe()), Data.NUMBER_FORMAT.format(this.recipeRate)), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+				ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s)</html>", Data.nameFor(this.getRecipe()), Util.NUMBER_FORMAT.format(this.recipeRate)), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 			}
 			ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.item), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
 			if (this.assembler != null) {
-				ret.add(new JLabel(String.format("<html>requires <b>%s</b> %s%s </html>", Data.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString()), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+				ret.add(new JLabel(String.format("<html>requires <b>%s</b> %s%s </html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 			}
 		} else if (this.recipe != null) {
 			ret.add(new JLabel("using ", TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s%s</html>", Data.nameFor(this.getRecipe()), Data.NUMBER_FORMAT.format(this.recipeRate), assembler != null ? String.format(" requires <b>%s</b> %s %s", Data.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString()) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s%s</html>", Data.nameFor(this.getRecipe()), Util.NUMBER_FORMAT.format(this.recipeRate), assembler != null ? String.format(" requires <b>%s</b> %s %s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		} else if (this.assembler != null) {
-			ret.add(new JLabel(String.format("<html><b>%s</b> %s %s</html>", Data.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString()), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> %s %s</html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
 
 		return ret;
+	}
+	
+	@Override
+	public String getRawString() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

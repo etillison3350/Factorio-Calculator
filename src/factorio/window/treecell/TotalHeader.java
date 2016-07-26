@@ -17,13 +17,19 @@ public class TotalHeader implements TreeCell {
 	}
 
 	@Override
-	public Component getTreeCellRendererComponent(boolean selected) {
+	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus) {
 		JLabel label = new JLabel(text, TreeCell.ICON_BLANK, SwingConstants.LEADING);
 		label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12 + 2 * headerLevel));
 		
-		TreeCell.addBorders(label, selected);
+		TreeCell.addBorders(label, selected, hasFocus);
 		
 		return label;
+	}
+
+	@Override
+	public String getRawString() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

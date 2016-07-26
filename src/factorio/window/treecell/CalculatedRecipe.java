@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import factorio.Util;
 import factorio.calculator.AssemblerSettings;
 import factorio.data.Data;
 import factorio.data.Recipe;
@@ -21,7 +22,7 @@ import factorio.data.Recipe;
 public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> {
 
 	public final boolean isFuel;
-	
+
 	public final String product;
 	private Recipe recipe;
 
@@ -42,19 +43,19 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	public CalculatedRecipe(String product, float rate) {
 		this(product, rate, false);
 	}
-	
+
 	public CalculatedRecipe(String product, float rate, boolean isFuel) {
 		this(product, rate, new ArrayList<>(), isFuel);
 	}
 
 	private CalculatedRecipe(String product, float rate, Collection<String> banned, boolean isFuel) {
 		this.isFuel = isFuel;
-		
+
 		this.product = product;
 		this.rate = rate;
 
 		for (Recipe r : Data.getRecipes()) {
-			if (r.getResults().containsKey(product) && !Data.isBlacklisted(r.name) && !banned.contains(r.name)) {
+			if (r.getResults().containsKey(product) && !Util.isBlacklisted(r.name) && !banned.contains(r.name)) {
 				this.recipe = r;
 
 				this.recipeRate = this.rate / this.recipe.getResults().get(product);
@@ -72,12 +73,12 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 
 		calculateAssemblers();
 	}
-	
+
 	public CalculatedRecipe(Recipe recipe, float rate, boolean isFuel) {
 		if (recipe == null) throw new NullPointerException();
 
 		this.isFuel = isFuel;
-		
+
 		this.recipe = recipe;
 		this.product = this.recipe.getResults().keySet().iterator().next();
 		this.recipeRate = rate;
@@ -99,7 +100,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * <br>
 	 * Sets the rate of this <code>CalculatedRecipe</code>, and updates the assembler count and rate for all nested <code>CalculatedRecipe</code>s
 	 * @param rate - The rate to set
-	 * </ul>
+	 *        </ul>
 	 */
 	public void setRate(float rate) {
 		this.rate = rate;
@@ -117,7 +118,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * <br>
 	 * Sets the {@code AssemblerSettings} for this {@code CalculatedRecipe}, and updates the assembler count for this {@code CalculatedRecipe} <b>only</b>.
 	 * @param settings - The settings to set
-	 * </ul>
+	 *        </ul>
 	 */
 	public void setSettings(AssemblerSettings settings) {
 		this.settings = settings;
@@ -135,7 +136,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * Sets the settings and rate of the {@code CalculatedRecipe}s as specified in {@link #setSettings(AssemblerSettings)} and {@link #setRate(float)} respectively
 	 * @param rate - The rate to set
 	 * @param settings - The settings to set
-	 * </ul>
+	 *        </ul>
 	 */
 	public void setRateAndSettings(float rate, AssemblerSettings settings) {
 		this.rate = rate;
@@ -162,7 +163,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 			}
 		}
 	}
-	
+
 	public float getAssemblers() {
 		return assemblers;
 	}
@@ -201,25 +202,26 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	}
 
 	@Override
-	public Component getTreeCellRendererComponent(boolean selected) {
+	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus) {
 		JPanel ret = new JPanel(new FlowLayout(FlowLayout.LEADING, 1, 1));
-		TreeCell.addBorders(ret, selected);
+		TreeCell.addBorders(ret, selected, hasFocus);
 
-		String prod = String.format("<html><b>%s</b> at <b>%s</b> items/s", Data.nameFor(this.product), Data.NUMBER_FORMAT.format(this.rate));
-		if (Data.hasMultipleRecipes(this.product)) {
-			prod += " (via ";
-			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s</b> cycles/s)</html>", Data.nameFor(this.recipe), Data.NUMBER_FORMAT.format(this.recipeRate)), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+		String prod = String.format("<html><b>%s</b> at <b>%s/s", Data.nameFor(this.product), Util.formatPlural(this.rate, "</b> item"));
+		if (Util.hasMultipleRecipes(this.product)) {
+			prod += " (using ";
+			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle")), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
 		ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.product), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-		if (this.settings != null) {
-			String assemblerStr = String.format("<html>requires <b>%s</b> %s", Data.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name));
-
-			assemblerStr += this.settings.getBonusString();
-
-			ret.add(new JLabel(assemblerStr + " </html>", TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-		}
+		if (this.settings != null) ret.add(new JLabel(String.format("<html>requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
 		return ret;
+	}
+
+	@Override
+	public String getRawString() {
+		String ret = String.format("%s at %s/s%s", Data.nameFor(this.product), Util.formatPlural(this.rate, "item"), Util.hasMultipleRecipes(this.product) ? String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle")) : "");
+
+		return ret + (this.settings != null ? String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(false)) : "");
 	}
 
 }

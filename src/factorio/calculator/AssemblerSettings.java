@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import factorio.Util;
 import factorio.data.Assembler;
 import factorio.data.Data;
 import factorio.data.Module;
@@ -94,7 +95,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	public static AssemblerSettings getDefaultSettings(Recipe recipe) {
 		return getDefaultSettings(recipe.type, recipe.getIngredients().size());
 	}
-	
+
 	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
 		// TODO
 		for (Assembler a : Data.getAssemblers()) {
@@ -103,7 +104,9 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		return getDefaultSettings(recipeType, ingredients);
 	}
 
-	public String getBonusString() {
+	public String getBonusString(boolean html) {
+		final String format = html ? "<font color=\"%1$s\">%2$s</font>" : "%2$s %3$s";
+
 		float speed = this.getSpeed() - 1;
 		float productivity = this.getProductivity() - 1;
 		float efficiency = this.getEfficiency() - 1;
@@ -115,9 +118,9 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		if (s || p || e) {
 			String bonus = " (";
 
-			if (s) bonus += "<font color=\"#0457FF\">" + Data.MODULE_FORMAT.format(speed) + "</font>";
-			if (p) bonus += (s ? ", " : "") + "<font color=\"#AD4ECC\">" + Data.MODULE_FORMAT.format(productivity) + "</font>";
-			if (e) bonus += (s || p ? ", " : "") + "<font color=\"#4C8818\">" + Data.MODULE_FORMAT.format(efficiency) + "</font>";
+			if (s) bonus += String.format(format, "#0457FF", Util.MODULE_FORMAT.format(speed), "speed");
+			if (p) bonus += (s ? ", " : "") + String.format(format, "#AD4ECC", Util.MODULE_FORMAT.format(productivity), "productivity");
+			if (e) bonus += (s || p ? ", " : "") + String.format(format, "#4C8818", Util.MODULE_FORMAT.format(efficiency), "efficiency");
 
 			return bonus + ")";
 		}
@@ -146,12 +149,12 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		} else if (!assembler.equals(other.assembler)) {
 			return false;
 		}
-		
+
 		List<Module> m1 = Arrays.asList(modules);
 		List<Module> m2 = Arrays.asList(other.modules);
 		Collections.sort(m1, Comparator.comparingInt(m -> m.hashCode()));
 		Collections.sort(m2, Comparator.comparingInt(m -> m.hashCode()));
-		
+
 		if (!m1.equals(m2)) return false;
 		return true;
 	}

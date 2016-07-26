@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,10 +30,6 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 
 public class Data {
 
-	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0.####");
-	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0.##%;-0.##%");
-	private static final NumberFormat ENERGY_FORMAT = new DecimalFormat("##0.###E0W");
-	
 	private Data() {}
 
 	private static final Set<Recipe> recipes = new HashSet<>();
@@ -404,50 +397,6 @@ public class Data {
 		return new ImageIcon(new BufferedImage(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
 	}
 
-	private static Collection<String> blacklist;
-
-	public static boolean isBlacklisted(String recipeName) {
-		if (blacklist == null) {
-			Path blacklist = Paths.get("resources/recipe-blacklist.cfg");;
-			if (!Files.exists(blacklist)) {
-				try {
-					Files.createDirectories(Paths.get("resources"));
-					Files.createFile(blacklist);
-				} catch (IOException e) {}
-				Data.blacklist = new HashSet<>();
-				return false;
-			} else {
-				try {
-					Data.blacklist = new HashSet<>(Files.readAllLines(blacklist));
-				} catch (IOException e) {
-					Data.blacklist = new HashSet<>();
-					return false;
-				}
-			}
-		}
-
-		return blacklist.contains(recipeName);
-	}
-
-	private static Map<String, Boolean> multRecipe = new HashMap<>();
-
-	public static boolean hasMultipleRecipes(String product) {
-		Boolean ret = multRecipe.get(product);
-
-		if (ret == null) {
-			int found = 0;
-			for (Recipe r : Data.getRecipes()) {
-				if (!isBlacklisted(r.name) && r.getResults().containsKey(product)) {
-					if (found++ == 1)
-						break;
-				}
-			}
-			multRecipe.put(product, found >= 2);
-			return found >= 2;
-		}
-		return ret;
-	}
-
 	public static String nameFor(String id) {
 		return names.get(id);
 	}
@@ -458,18 +407,6 @@ public class Data {
 		return ret;
 	}
 	
-	public static String formatEnergy(double watts) {
-		ENERGY_FORMAT.setMaximumFractionDigits(2);
-		String ret = ENERGY_FORMAT.format(watts);
-		
-		ret = ret.replace("E0", "");
-		ret = ret.replace("E3", "k");
-		ret = ret.replace("E6", "M");
-		ret = ret.replace("E9", "G");
-		
-		return ret;
-	}
-
 	public static SortedSet<Recipe> getRecipesSorted() {
 		SortedSet<Recipe> ret = new TreeSet<>(new Comparator<Recipe>() {
 

@@ -104,7 +104,7 @@ public class Window extends JFrame {
 		total.setRootVisible(false);
 		total.setCellRenderer(new CellRenderer());
 		JScrollPane totalScroll = new JScrollPane(total);
-		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false));
+		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false, false));
 		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(full), totalScroll);
 		full_total.setDividerSize(7);
 		full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);
@@ -113,6 +113,8 @@ public class Window extends JFrame {
 		in_out.setDividerSize(7);
 		in_out.setDividerLocation(492);
 		this.add(in_out);
+		
+		this.setJMenuBar(new MenuBar());
 	}
 
 }

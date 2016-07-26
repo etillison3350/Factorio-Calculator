@@ -15,8 +15,10 @@ public interface TreeCell {
 
 	public static final Icon ICON_BLANK = new ImageIcon(new BufferedImage(1, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
 
-	public Component getTreeCellRendererComponent(boolean selected);
+	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus);
 	
+	public String getRawString();
+
 	/**
 	 * <ul>
 	 * <b><i>addBorders</i></b><br>
@@ -26,18 +28,15 @@ public interface TreeCell {
 	 * Configures the given <code>Component</code>'s borders and background based on whether or not it's selected
 	 * @param c - The <code>Component</code> to configure
 	 * @param sel - Whether or not the component is selected
-	 * </ul>
+	 * @param hasFocus - Whether or not the component has focus
+	 *        </ul>
 	 */
-	public static void addBorders(JComponent c, boolean sel) {
+	public static void addBorders(JComponent c, boolean sel, boolean hasFocus) {
 		c.setOpaque(true);
-		
-		if (sel) {
-			c.setBackground(UIManager.getColor("Tree.selectionBackground"));
-			c.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Tree.selectionBorderColor")));
-		} else {
-			c.setBackground(UIManager.getColor("Tree.background"));
-			c.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		}
+
+		c.setBackground(UIManager.getColor(sel ? "Tree.selectionBackground" : "Tree.background"));
+
+		c.setBorder(hasFocus ? BorderFactory.createLineBorder(UIManager.getColor("Tree.selectionBorderColor")) : BorderFactory.createEmptyBorder(1, 1, 1, 1));
 	}
 	
 }
