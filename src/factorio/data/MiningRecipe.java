@@ -14,7 +14,7 @@ public class MiningRecipe extends Recipe {
 	}
 	
 	@Override
-	public float timeIn(Assembler assembler, float speedMultiplier) {
+	public double timeIn(Assembler assembler, double speedMultiplier) {
 		if (!(assembler instanceof MiningDrill)) return super.timeIn(assembler, speedMultiplier);
 		
 		MiningDrill drill = (MiningDrill) assembler;

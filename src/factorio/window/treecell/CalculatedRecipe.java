@@ -29,26 +29,26 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	/**
 	 * The rate, in items per second, to calculate for.
 	 */
-	private float rate;
+	private double rate;
 
 	/**
 	 * The rate, in recipes completed per second, to calculate for.
 	 */
-	private float recipeRate;
+	private double recipeRate;
 
-	private float assemblers;
+	private double assemblers;
 	private AssemblerSettings settings;
 	private Map<String, CalculatedRecipe> ingredients = new TreeMap<>();
 
-	public CalculatedRecipe(String product, float rate) {
+	public CalculatedRecipe(String product, double rate) {
 		this(product, rate, false);
 	}
 
-	public CalculatedRecipe(String product, float rate, boolean isFuel) {
+	public CalculatedRecipe(String product, double rate, boolean isFuel) {
 		this(product, rate, new ArrayList<>(), isFuel);
 	}
 
-	private CalculatedRecipe(String product, float rate, Collection<String> banned, boolean isFuel) {
+	private CalculatedRecipe(String product, double rate, Collection<String> banned, boolean isFuel) {
 		this.isFuel = isFuel;
 
 		this.product = product;
@@ -74,7 +74,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		calculateAssemblers();
 	}
 
-	public CalculatedRecipe(Recipe recipe, float rate, boolean isFuel) {
+	public CalculatedRecipe(Recipe recipe, double rate, boolean isFuel) {
 		if (recipe == null) throw new NullPointerException();
 
 		this.isFuel = isFuel;
@@ -96,15 +96,15 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * <ul>
 	 * <b><i>setRate</i></b><br>
 	 * <br>
-	 * <code>&nbsp;public void setRate(float rate)</code><br>
+	 * <code>&nbsp;public void setRate(double rate)</code><br>
 	 * <br>
 	 * Sets the rate of this <code>CalculatedRecipe</code>, and updates the assembler count and rate for all nested <code>CalculatedRecipe</code>s
 	 * @param rate - The rate to set
 	 *        </ul>
 	 */
-	public void setRate(float rate) {
+	public void setRate(double rate) {
 		this.rate = rate;
-		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(product).floatValue();
+		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(product).doubleValue();
 
 		calculateAssemblers();
 		updateIngredients();
@@ -131,16 +131,16 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * <ul>
 	 * <b><i>setRateAndSettings</i></b><br>
 	 * <br>
-	 * <code>&nbsp;public void setRateAndSettings(float rate, AssemblerSettings settings)</code><br>
+	 * <code>&nbsp;public void setRateAndSettings(double rate, AssemblerSettings settings)</code><br>
 	 * <br>
-	 * Sets the settings and rate of the {@code CalculatedRecipe}s as specified in {@link #setSettings(AssemblerSettings)} and {@link #setRate(float)} respectively
+	 * Sets the settings and rate of the {@code CalculatedRecipe}s as specified in {@link #setSettings(AssemblerSettings)} and {@link #setRate(double)} respectively
 	 * @param rate - The rate to set
 	 * @param settings - The settings to set
 	 *        </ul>
 	 */
-	public void setRateAndSettings(float rate, AssemblerSettings settings) {
+	public void setRateAndSettings(double rate, AssemblerSettings settings) {
 		this.rate = rate;
-		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(product).floatValue();
+		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(product).doubleValue();
 		this.settings = settings;
 
 		calculateAssemblers();
@@ -150,7 +150,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	private void calculateAssemblers() {
 		if (this.recipe != null && this.settings != null) {
 			// The number of items produced per second by one assembler
-			float ips = recipe.getResults().get(this.product) * settings.getProductivity() / recipe.timeIn(settings.getAssembler(), settings.getSpeed());
+			double ips = recipe.getResults().get(this.product) * settings.getProductivity() / recipe.timeIn(settings.getAssembler(), settings.getSpeed());
 
 			this.assemblers = rate / ips;
 		}
@@ -164,15 +164,9 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		}
 	}
 
-	public float getAssemblers() {
+	public double getAssemblers() {
 		return assemblers;
 	}
-
-//	@Override
-//	public String toString() {
-//		if (this.recipe == null) return String.format("%s at %.6g items/s", Data.nameFor(this.product), this.rate);
-//		return String.format("%s at %.6g cycles/s requires %.4f assemblers", Data.nameFor(recipe), recipeRate, assemblers);
-//	}
 
 	public Set<CalculatedRecipe> getIngredients() {
 		return new TreeSet<>(ingredients.values());
@@ -182,11 +176,11 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		return recipe;
 	}
 
-	public float getRate() {
+	public double getRate() {
 		return rate;
 	}
 
-	public float getRecipeRate() {
+	public double getRecipeRate() {
 		return recipeRate;
 	}
 

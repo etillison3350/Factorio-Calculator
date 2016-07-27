@@ -24,6 +24,11 @@ for k, v in pairs(data.raw["mining-drill"]) do
 	table.insert(drills, v)
 end
 
+pumps = {}
+for k, v in pairs(data.raw["offshore-pump"]) do
+	table.insert(pumps, v)
+end
+
 modules = {}
 for k, v in pairs(data.raw.module) do
 	table.insert(modules, v)

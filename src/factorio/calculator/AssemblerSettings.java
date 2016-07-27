@@ -62,8 +62,8 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	 * @return the speed multiplier of this {@code AssemblerSettings}
 	 *         </ul>
 	 */
-	public float getSpeed() {
-		return 1 + (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("speed")).sum();// .reduce(1, (a, b) -> a + b);
+	public double getSpeed() {
+		return 1 + (double) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("speed")).sum();// .reduce(1, (a, b) -> a + b);
 	}
 
 	/**
@@ -75,8 +75,8 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	 * @return the productivity multiplier of this {@code AssemblerSettings}
 	 *         </ul>
 	 */
-	public float getProductivity() {
-		return 1 + (float) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("productivity")).sum();// .reduce(1, (a, b) -> a + b);
+	public double getProductivity() {
+		return 1 + (double) Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("productivity")).sum();// .reduce(1, (a, b) -> a + b);
 	}
 
 	/**
@@ -88,8 +88,8 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	 * @return the greater of the efficiency multiplier of this {@code AssemblerSettings} and 0.2 (the minimum energy consumption).
 	 *         </ul>
 	 */
-	public float getEfficiency() {
-		return (float) Math.max(0.2, 1 + Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
+	public double getEfficiency() {
+		return (double) Math.max(0.2, 1 + Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
 	}
 
 	public static AssemblerSettings getDefaultSettings(Recipe recipe) {
@@ -107,9 +107,9 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	public String getBonusString(boolean html) {
 		final String format = html ? "<font color=\"%1$s\">%2$s</font>" : "%2$s %3$s";
 
-		float speed = this.getSpeed() - 1;
-		float productivity = this.getProductivity() - 1;
-		float efficiency = this.getEfficiency() - 1;
+		double speed = this.getSpeed() - 1;
+		double productivity = this.getProductivity() - 1;
+		double efficiency = this.getEfficiency() - 1;
 
 		boolean s = Math.abs(speed) > 0.0001;
 		boolean p = Math.abs(productivity) > 0.0001;

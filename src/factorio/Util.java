@@ -10,15 +10,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import factorio.data.Data;
 import factorio.data.Recipe;
 
 public class Util {
 
-	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("0.####");
+	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#,##0.####");
 	public static final NumberFormat MODULE_FORMAT = new DecimalFormat("+0.##%;-0.##%");
-	public static final NumberFormat ENERGY_FORMAT = new DecimalFormat("##0.###E0W");
+	public static final NumberFormat ENERGY_FORMAT = new DecimalFormat("##0.##E0W");
+	private static final Pattern ENERGY_PATTERN = Pattern.compile("E(\\d+)");
 	
 	private static Collection<String> blacklist;
 	
@@ -30,12 +33,10 @@ public class Util {
 		ENERGY_FORMAT.setMaximumFractionDigits(2);
 		String ret = ENERGY_FORMAT.format(watts);
 		
-		ret = ret.replace("E0", "");
-		ret = ret.replace("E3", "k");
-		ret = ret.replace("E6", "M");
-		ret = ret.replace("E9", "G");
+		Matcher m = ENERGY_PATTERN.matcher(ret);
+		m.find();
 		
-		return ret;
+		return ret.replace(m.group(), new String[] {"", "k", "M", "G", "T", "P", "E", "Z", "Y"}[Integer.parseInt(m.group(1)) / 3]);
 	}
 
 	public static boolean isBlacklisted(String recipeName) {

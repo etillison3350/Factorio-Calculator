@@ -241,7 +241,9 @@ public class Data {
 
 				int ingredients = assembler.get("ingredient_count").optint(1);
 
-				boolean coal = assembler.get("energy_source").get("type").checkjstring().contains("burner");
+				boolean burner = assembler.get("energy_source").get("type").checkjstring().contains("burner");
+
+				float effectivity = (float) assembler.get("energy_source").get("effectivity").optdouble(1);
 
 				float speed = (float) assembler.get("crafting_speed").optdouble(1);
 
@@ -271,7 +273,7 @@ public class Data {
 					effects.add("all");
 				}
 
-				Data.assemblers.add(new Assembler(name, ingredients, speed, energy, modules, coal, categories, effects));
+				Data.assemblers.add(new Assembler(name, ingredients, speed, energy, modules, burner, effectivity, categories, effects));
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
@@ -286,7 +288,9 @@ public class Data {
 
 				float power = drill.get("mining_power").tofloat();
 
-				boolean coal = drill.get("energy_source").get("type").checkjstring().contains("burner");
+				boolean burner = drill.get("energy_source").get("type").checkjstring().contains("burner");
+
+				float effectivity = (float) drill.get("energy_source").get("effectivity").optdouble(1);
 
 				float speed = (float) drill.get("mining_speed").optdouble(1);
 
@@ -316,7 +320,34 @@ public class Data {
 					effects.add("all");
 				}
 
-				Data.assemblers.add(new MiningDrill(name, speed, power, energy, modules, coal, categories, effects));
+				Data.assemblers.add(new MiningDrill(name, speed, power, energy, modules, burner, effectivity, categories, effects));
+			} catch (LuaError e) {
+				e.printStackTrace(System.err);
+			}
+		}
+
+		LuaValue pumps = global.get("pumps");
+		for (int i = 1; i <= pumps.length(); i++) {
+			try {
+				LuaValue pump = pumps.get(i);
+
+				String name = pump.get("name").checkjstring();
+
+				float speed = pump.get("pumping_speed").tofloat();
+
+				Data.assemblers.add(new OffshorePump(name, speed));
+
+				String fluid = pump.get("fluid").checkjstring();
+
+				Image icon;
+				try {
+					String iconPath = resolve(global.get("icons").get(fluid).checkjstring(), modPaths);
+					icon = Toolkit.getDefaultToolkit().getImage(Paths.get(iconPath).toUri().toURL());
+				} catch (Exception e) {
+					icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
+				}
+
+				Data.recipes.add(new OffshoreRecipe(fluid, name, fluid, icon));
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
@@ -349,9 +380,6 @@ public class Data {
 				Data.modules.add(new Module(name, effects, limitation.toArray(new String[limitation.size()])));
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
-				try {
-					Thread.sleep(2);
-				} catch (InterruptedException e1) {}
 			}
 		}
 
@@ -406,7 +434,7 @@ public class Data {
 		if (ret == null) return nameFor(recipe.getResults().keySet().iterator().next());
 		return ret;
 	}
-	
+
 	public static SortedSet<Recipe> getRecipesSorted() {
 		SortedSet<Recipe> ret = new TreeSet<>(new Comparator<Recipe>() {
 

@@ -102,7 +102,7 @@ public class ProductList extends JPanel {
 	public Map<Recipe, Number> getRates() {
 		Map<Recipe, Number> ret = new HashMap<>();
 		for (ProductListRow row : listRows) {
-			float rate = row.getRate();
+			double rate = row.getRate();
 			if (rate > 0) ret.put(row.recipe, rate);
 		}
 		

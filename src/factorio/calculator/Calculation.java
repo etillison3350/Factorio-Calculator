@@ -23,7 +23,7 @@ public class Calculation {
 		this.productRates.putAll(productRates);
 
 		for (Recipe recipe : productRates.keySet()) {
-			result.add(new CalculatedRecipe(recipe, productRates.get(recipe).floatValue(), false));
+			result.add(new CalculatedRecipe(recipe, productRates.get(recipe).doubleValue(), false));
 		}
 	}
 

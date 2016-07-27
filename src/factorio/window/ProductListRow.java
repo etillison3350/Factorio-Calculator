@@ -154,14 +154,14 @@ public class ProductListRow extends JPanel {
 	 * @return The number of recipe cycles per second the user has specified in this <code>ProductListRow</code>'s text field.
 	 * </ul>
 	 */
-	public float getRate() {
+	public double getRate() {
 		switch (options.getSelectedItem().toString()) {
 			case "cycles per second":
 				return value;
 			case "max cap. assembers":
 				return 1 / (value * assemblerSettings.getSpeed() * recipe.time);
 			default:
-				return value / (float) recipe.getResults().values().stream().mapToDouble(f -> (double) f).sum();
+				return value / recipe.getResults().values().stream().mapToDouble(f -> (double) f).sum();
 		}
 	}
 

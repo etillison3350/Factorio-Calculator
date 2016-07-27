@@ -23,7 +23,7 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 	private Recipe recipe;
 	private AssemblerSettings assembler;
 
-	private float itemRate, recipeRate, assemblerCount;
+	private double itemRate, recipeRate, assemblerCount;
 
 	private Set<TotalItem> children = new HashSet<>();
 
@@ -45,7 +45,7 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 		return assembler;
 	}
 
-	public void add(float itemRate, float recipeRate, Recipe recipe, float assemblerCount, AssemblerSettings assembler) {
+	public void add(double itemRate, double recipeRate, Recipe recipe, double assemblerCount, AssemblerSettings assembler) {
 		this.itemRate += itemRate;
 
 		if (this.recipe == null && this.item != null) {

@@ -60,7 +60,7 @@ public class Recipe {
 		return new HashMap<>(results);
 	}
 
-	public float timeIn(Assembler assembler, float speedMultiplier) {
+	public double timeIn(Assembler assembler, double speedMultiplier) {
 		return this.time / (assembler.speed * speedMultiplier);
 	}
 
