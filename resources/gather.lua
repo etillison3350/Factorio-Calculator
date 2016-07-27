@@ -66,6 +66,8 @@ for k, v in pairs(data.raw) do
 	end
 end
 
+totalLength = #recipes + #resources + #assemblers + #drills + #pumps + #modules + #fuel
+
 function getIngredients(arr)
 	standard = {}
 

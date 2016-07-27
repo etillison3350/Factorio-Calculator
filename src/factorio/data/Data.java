@@ -28,6 +28,8 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
+import factorio.window.LoadingDialog;
+
 public class Data {
 
 	private Data() {}
@@ -46,6 +48,10 @@ public class Data {
 	private static final Pattern MOD_PATH = Pattern.compile("__(.+?)__");
 
 	public static void load(Path factorioDir, Path... mods) throws IOException {
+		LoadingDialog loading = new LoadingDialog();
+		loading.setText("Loading prototypes...");
+		loading.setVisible(true);
+		
 		LuaTable global = JsePlatform.standardGlobals();
 
 		Path core = factorioDir.resolve("data/core");
@@ -66,7 +72,9 @@ public class Data {
 
 		for (int m = -1; m < mods.length; m++) {
 			Path mod = m == -1 ? factorioDir.resolve("data/base") : mods[m];
-			modPaths.put(m == -1 ? "base" : mods[m].getFileName().toString().replaceAll("_\\d+\\.\\d+\\.\\d+$", ""), mod);
+			String name = m == -1 ? "base" : mods[m].getFileName().toString().replaceAll("_\\d+\\.\\d+\\.\\d+$", "");
+			loading.setText("Loading prototypes for " + name + "...");
+			modPaths.put(name, mod);
 
 			global.get("package").set("path", mod.toFile().getAbsolutePath().replace("\\", "/") + "/?.lua;" + core.resolve("lualib").toFile().getAbsolutePath().replace("\\", "/") + "/?.lua");
 
@@ -100,8 +108,10 @@ public class Data {
 			});
 		}
 
+		loading.setText("Loading prototypes...");
 		global.get("dofile").call(LuaValue.valueOf(Paths.get("resources/gather.lua").toFile().getAbsolutePath()));
 
+		loading.setText("Loading sprites...");
 		itemIconPaths = new HashMap<>();
 		LuaValue k = LuaValue.NIL;
 		while (true) {
@@ -112,8 +122,12 @@ public class Data {
 			itemIconPaths.put(k.checkjstring(), Paths.get(resolve(v.checkjstring(), modPaths)));
 		}
 
+		loading.setDeterminate(global.get("totalLength").toint());
+		
 		LuaValue recipes = global.get("recipes");
-		for (int i = 1; i <= recipes.length(); i++) {
+		int length = recipes.length();
+		loading.setText("Parsing recipes (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue recipe = recipes.get(i);
 
@@ -181,10 +195,14 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			loading.setText("Parsing recipes (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
 
 		LuaValue resources = global.get("resources");
-		for (int i = 1; i <= resources.length(); i++) {
+		length = resources.length();
+		loading.setText("Parsing resources (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue resource = resources.get(i);
 
@@ -230,10 +248,15 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+
+			loading.setText("Parsing resources (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
 
 		LuaValue assemblers = global.get("assemblers");
-		for (int i = 1; i <= assemblers.length(); i++) {
+		length = assemblers.length();
+		loading.setText("Parsing assemblers (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue assembler = assemblers.get(i);
 
@@ -277,10 +300,15 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			
+			loading.setText("Parsing assemblers (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
-
+		
 		LuaValue drills = global.get("drills");
-		for (int i = 1; i <= drills.length(); i++) {
+		length = drills.length();
+		loading.setText("Parsing mining drills (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue drill = drills.get(i);
 
@@ -324,10 +352,15 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			
+			loading.setText("Parsing mining drills (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
 
 		LuaValue pumps = global.get("pumps");
-		for (int i = 1; i <= pumps.length(); i++) {
+		length = pumps.length();
+		loading.setText("Parsing pumps (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue pump = pumps.get(i);
 
@@ -351,10 +384,15 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			
+			loading.setText("Parsing pumps (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
 
 		LuaValue modules = global.get("modules");
-		for (int i = 1; i <= modules.length(); i++) {
+		length = modules.length();
+		loading.setText("Parsing modules (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue module = modules.get(i);
 
@@ -381,10 +419,15 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			
+			loading.setText("Parsing modules (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
 
 		LuaValue fuels = global.get("fuel");
-		for (int i = 1; i <= fuels.length(); i++) {
+		length = fuels.length();
+		loading.setText("Parsing fuel (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
 			try {
 				LuaValue fuel = fuels.get(i);
 
@@ -395,7 +438,12 @@ public class Data {
 			} catch (LuaError e) {
 				e.printStackTrace(System.err);
 			}
+			
+			loading.setText("Parsing fuel (" + i + "/" + length + ")");
+			loading.incrementProgress();
 		}
+		
+		loading.dispose();
 	}
 
 	private static String resolve(String path, Map<String, Path> mods) {
