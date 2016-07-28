@@ -58,6 +58,8 @@ public class ProductListRow extends JPanel {
 		this.label.setIcon(recipe.getIcon());
 
 		this.add(this.label, BorderLayout.LINE_START);
+		
+		RecipePopupManager.registerComponent(this.label, recipe);
 
 		JPanel right = new JPanel(new GridBagLayout());
 

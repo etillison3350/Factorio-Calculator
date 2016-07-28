@@ -459,18 +459,21 @@ public class Data {
 	private static Map<String, Path> itemIconPaths;
 	private static Map<String, Icon> storedIcons = new HashMap<>();
 
-	public static Icon getItemIcon(String icon) {
-		Icon ret = storedIcons.get(icon);
+	public static Icon getItemIcon(String icon, boolean large) {
+		int iconSize = large ? Recipe.ICON_SIZE : Recipe.SMALL_ICON_SIZE;
+		String iconStr = icon + (large ? "_*LARGE" : "");
+		
+		Icon ret = storedIcons.get(iconStr);
 		if (ret != null) return ret;
 
 		if (itemIconPaths.containsKey(icon)) {
 			try {
-				ret = new ImageIcon(Toolkit.getDefaultToolkit().getImage(itemIconPaths.get(icon).toUri().toURL()).getScaledInstance(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, Image.SCALE_SMOOTH));
-				storedIcons.put(icon, ret);
+				ret = new ImageIcon(Toolkit.getDefaultToolkit().getImage(itemIconPaths.get(icon).toUri().toURL()).getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH));
+				storedIcons.put(iconStr, ret);
 				return ret;
 			} catch (Exception e) {}
 		}
-		return new ImageIcon(new BufferedImage(Recipe.SMALL_ICON_SIZE, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
+		return new ImageIcon(new BufferedImage(iconSize, iconSize, BufferedImage.TYPE_INT_ARGB_PRE));
 	}
 
 	public static String nameFor(String id) {
