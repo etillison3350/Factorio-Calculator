@@ -20,7 +20,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
 	private final JMenuItem reset;
 	private final JMenuItem open;
 	private final JMenuItem save;
-	private final JMenuItem export;
 	private final JMenuItem exit;
 	private final JMenu settings;
 	private final JMenuItem mods;
@@ -57,11 +56,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
 		save.addActionListener(this);
 		file.add(save);
 
-		export = new JMenuItem("Export");
-		export.setMnemonic(KeyEvent.VK_X);
-		export.addActionListener(this);
-		file.add(export);
-
 		exit = new JMenuItem("Exit");
 		if (!System.getProperty("os.name").contains("Mac")) {
 			file.addSeparator();
@@ -94,8 +88,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
 			if (this.delegate != null) delegate.save();
 		} else if (e.getSource() == open) {
 			if (this.delegate != null) delegate.open();
-		} else if (e.getSource() == export) {
-			if (this.delegate != null) delegate.export();
 		} else if (e.getSource() == exit) {
 			if (this.delegate != null) delegate.exit();
 		} else if (e.getSource() == mods) {

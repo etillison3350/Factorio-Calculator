@@ -19,19 +19,21 @@ public class LoadingDialog extends JFrame {
 
 	private static final long serialVersionUID = 1042158646178608832L;
 
-	private static Icon splash;
+	private static final Icon SPLASH;
+	
+	static {
+		ImageIcon splash;
+		try {
+			splash = new ImageIcon(Paths.get("resources/splash-screen-image.png").toUri().toURL());
+		} catch (Exception e) {
+			splash = new ImageIcon(new BufferedImage(307, 51, BufferedImage.TYPE_INT_ARGB_PRE));
+		}
+		SPLASH = splash; 
+	}
 
 	private final JProgressBar progress;
 
 	public LoadingDialog() {
-		if (splash == null) {
-			try {
-				splash = new ImageIcon(Paths.get("resources/splash-screen-image.png").toUri().toURL());
-			} catch (Exception e) {
-				splash = new ImageIcon(new BufferedImage(307, 51, BufferedImage.TYPE_INT_ARGB_PRE));
-			}
-		}
-
 		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		this.setSize(384, 160);
 		this.setLocationRelativeTo(null);
@@ -40,7 +42,7 @@ public class LoadingDialog extends JFrame {
 		JPanel content = new JPanel(new BorderLayout());
 		content.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-		content.add(new JLabel(splash));
+		content.add(new JLabel(SPLASH));
 
 		this.progress = new JProgressBar();
 		this.progress.setIndeterminate(true);

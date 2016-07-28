@@ -50,18 +50,9 @@ public class ShadowLabel extends JLabel {
 		FontMetrics fm = g.getFontMetrics();
 		int strWidth = fm.stringWidth(text);
 
-//		g.drawString(text, this.getWidth() - strWidth - 2, this.getHeight() - 2);
-//		g.drawString(text, this.getWidth() - strWidth, this.getHeight() - 2);
-//		g.drawString(text, this.getWidth() - strWidth - 2, this.getHeight());
-//		g.drawString(text, this.getWidth() - strWidth, this.getHeight());
-		
-//		g.setTransform(new AffineTransform(0, 0, 0, 0, this.getWidth() - strWidth - 1, this.getHeight() - 1));
 		g.translate(this.getWidth() - strWidth - 2, this.getHeight() - 2);
 		
 		GlyphVector vector = this.getFont().createGlyphVector(g.getFontRenderContext(), text);
-//		for (int i = 0; i < text.length(); i++) {
-//			
-//		}
 		
 		Shape ch = vector.getOutline();
 		g.setStroke(new BasicStroke(2));
@@ -69,8 +60,5 @@ public class ShadowLabel extends JLabel {
 		g.draw(ch);
 		g.setColor(this.getForeground());
 		g.fill(ch);
-
-//		g.setColor(this.getForeground());
-//		g.drawString(text, this.getWidth() - strWidth - 1, this.getHeight() - 1);
 	}
 }

@@ -63,7 +63,6 @@ public class ProductList extends JPanel {
 				else
 					row.setBackground(new Color(238, 238, 238));
 			}
-//			Arrays.stream(listRows).forEach(container::add);
 			container.revalidate();
 			container.repaint();
 		} else {
@@ -93,7 +92,6 @@ public class ProductList extends JPanel {
 				else
 					row.setBackground(new Color(238, 238, 238));
 			}
-//			rows.forEach(container::add);
 			container.revalidate();
 			container.repaint();
 		}

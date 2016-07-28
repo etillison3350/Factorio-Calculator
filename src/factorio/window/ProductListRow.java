@@ -14,7 +14,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -143,8 +142,6 @@ public class ProductListRow extends JPanel {
 		right.setOpaque(false);
 
 		this.add(right, BorderLayout.LINE_END);
-
-//		this.add(Box.createHorizontalGlue());
 	}
 
 	/**

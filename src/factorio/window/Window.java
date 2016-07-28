@@ -40,14 +40,14 @@ public class Window extends JFrame {
 
 	private static final long serialVersionUID = -377970844785993226L;
 
-	private JSplitPane in_out, full_total;
+	private final JSplitPane in_out, full_total;
 
-	private JPanel inputPanel;
-	private JTree full, total;
+	private final JPanel inputPanel;
+	private final JTree full, total;
 
-	private JTextField search;
-	private ProductList inputList;
-	private JButton calculate;
+	private final JTextField search;
+	private final ProductList inputList;
+	private final JButton calculate;
 
 	public Window() {
 		super("Factorio Calculator");

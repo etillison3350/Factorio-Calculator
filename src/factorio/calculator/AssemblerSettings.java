@@ -120,7 +120,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 
 			if (s) bonus += String.format(format, "#0457FF", Util.MODULE_FORMAT.format(speed), "speed");
 			if (p) bonus += (s ? ", " : "") + String.format(format, "#AD4ECC", Util.MODULE_FORMAT.format(productivity), "productivity");
-			if (e) bonus += (s || p ? ", " : "") + String.format(format, "#4C8818", Util.MODULE_FORMAT.format(efficiency), "efficiency");
+			if (e) bonus += (s || p ? ", " : "") + String.format(format, "#4C8818", Util.MODULE_FORMAT.format(efficiency), "consumption");
 
 			return bonus + ")";
 		}

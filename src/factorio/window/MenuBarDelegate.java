@@ -37,17 +37,6 @@ public interface MenuBarDelegate {
 
 	/**
 	 * <ul>
-	 * <b><i>export</i></b><br>
-	 * <br>
-	 * <code>&nbsp;public void export()</code><br>
-	 * <br>
-	 * Handles a request from the {@link MenuBar} to export the current output state of the calculator. This will be called when the {@code Export} item's action is performed.
-	 * </ul>
-	 */
-	public void export();
-	
-	/**
-	 * <ul>
 	 * <b><i>exit</i></b><br>
 	 * <br>
 	 * <code>&nbsp;public void exit()</code><br>

@@ -6,17 +6,23 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Popup;
@@ -30,6 +36,8 @@ import factorio.data.Data;
 import factorio.data.Recipe;
 
 public class RecipePopupManager extends MouseAdapter {
+
+	private static final ImageIcon TIME;
 
 	private static final RecipePopupManager listener = new RecipePopupManager();
 
@@ -61,6 +69,18 @@ public class RecipePopupManager extends MouseAdapter {
 	private static Component currentComponent;
 	private static int x, y;
 
+	static {
+		Image img;
+		try {
+			img = Toolkit.getDefaultToolkit().getImage(Paths.get("resources/clock-icon.png").toUri().toURL()).getScaledInstance(Recipe.ICON_SIZE, Recipe.ICON_SIZE, Image.SCALE_SMOOTH);
+		} catch (MalformedURLException e) {
+			img = new BufferedImage(Recipe.ICON_SIZE, Recipe.ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE);
+		}
+		TIME = new ImageIcon(img);
+		
+		timer.setRepeats(false);
+	}
+	
 	public static void registerComponent(Component c, Recipe r) {
 		registeredComponents.put(c, r);
 		c.addMouseListener(listener);
@@ -103,6 +123,11 @@ public class RecipePopupManager extends MouseAdapter {
 			panel.add(p, c);
 		}
 
+		c.gridy++;
+		JLabel time = new JLabel(Util.NUMBER_FORMAT.format(r.time), TIME, SwingConstants.LEADING);
+		time.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+		panel.add(time, c);
+
 		for (String ingredient : r.getIngredients().keySet()) {
 			c.gridy++;
 			JLabel label = new JLabel(Util.NUMBER_FORMAT.format(r.getIngredients().get(ingredient)) + " \u00D7 " + Data.nameFor(ingredient), Data.getItemIcon(ingredient, true), SwingConstants.LEADING);
@@ -112,27 +137,17 @@ public class RecipePopupManager extends MouseAdapter {
 
 		c.gridy++;
 		panel.add(Box.createVerticalStrut(1), c);
-		
+
 		panel.setBackground(new Color(216, 216, 216));
 
 		return panel;
 	}
-
-//	@Override
-//	public void mouseEntered(MouseEvent e) {
-//		if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
-//		currentComponent = e.getComponent();
-//		timer.setRepeats(false);
-//
-//		timer.restart();
-//	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		if (popup == null) {
 			if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
 			currentComponent = e.getComponent();
-			timer.setRepeats(false);
 			timer.restart();
 		}
 		x = e.getXOnScreen() + 1;
@@ -141,14 +156,6 @@ public class RecipePopupManager extends MouseAdapter {
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-//		e.getComponent().
-//		System.out.println(e.getComponent().getComponentAt(e.getPoint()));
-//		try {
-//			if (e.getComponent().getComponentAt(e.getPoint()).equals(panel)) return;
-//		} catch (Exception ex) {
-//			System.exit(0);
-//		}
-
 		if (e.getComponent().contains(e.getPoint())) return;
 
 		if (popup != null) {

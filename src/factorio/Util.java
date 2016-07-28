@@ -23,6 +23,12 @@ public class Util {
 	public static final NumberFormat ENERGY_FORMAT = new DecimalFormat("##0.##E0W");
 	private static final Pattern ENERGY_PATTERN = Pattern.compile("E(\\d+)");
 	
+	private static final String[] PREFIXES = {"", "k", "M", "G", "T", "P", "E", "Z", "Y"};
+	
+	static {
+		ENERGY_FORMAT.setMaximumFractionDigits(2);
+	}
+	
 	private static Collection<String> blacklist;
 	
 	private static Map<String, Boolean> multRecipe = new HashMap<>();
@@ -30,13 +36,12 @@ public class Util {
 	private Util() {}
 
 	public static String formatEnergy(double watts) {
-		ENERGY_FORMAT.setMaximumFractionDigits(2);
 		String ret = ENERGY_FORMAT.format(watts);
 		
 		Matcher m = ENERGY_PATTERN.matcher(ret);
 		m.find();
 		
-		return ret.replace(m.group(), new String[] {"", "k", "M", "G", "T", "P", "E", "Z", "Y"}[Integer.parseInt(m.group(1)) / 3]);
+		return ret.replace(m.group(), PREFIXES[Integer.parseInt(m.group(1)) / 3]);
 	}
 
 	public static boolean isBlacklisted(String recipeName) {
