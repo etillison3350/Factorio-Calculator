@@ -57,7 +57,7 @@ public class ProductListRow extends JPanel {
 		this.label = new JLabel(Data.nameFor(recipe));
 		this.label.setIcon(recipe.getIcon());
 
-		this.add(this.label, BorderLayout.LINE_START);
+		this.add(this.label);
 		
 		RecipePopupManager.registerComponent(this.label, recipe);
 
@@ -144,7 +144,7 @@ public class ProductListRow extends JPanel {
 
 		this.add(right, BorderLayout.LINE_END);
 
-		this.add(Box.createHorizontalGlue());
+//		this.add(Box.createHorizontalGlue());
 	}
 
 	/**

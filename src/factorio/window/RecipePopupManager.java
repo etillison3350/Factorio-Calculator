@@ -7,18 +7,22 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import factorio.Util;
@@ -37,7 +41,18 @@ public class RecipePopupManager extends MouseAdapter {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			popup = PopupFactory.getSharedInstance().getPopup(currentComponent, createRecipePanel(registeredComponents.get(currentComponent)), x, y);
+			JPanel panel = createRecipePanel(registeredComponents.get(currentComponent));
+			panel.addMouseMotionListener(new MouseMotionAdapter() {
+
+				@Override
+				public void mouseMoved(MouseEvent e) {
+					Point converted = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), currentComponent);
+					if (currentComponent != null && !currentComponent.contains(converted)) {
+						listener.mouseExited(new MouseEvent(currentComponent, MouseEvent.MOUSE_EXITED, e.getWhen(), e.getModifiers(), converted.x, converted.y, e.getClickCount(), e.isPopupTrigger()));
+					}
+				}
+			});
+			popup = PopupFactory.getSharedInstance().getPopup(currentComponent, panel, x, y);
 			popup.show();
 		}
 	});
@@ -69,7 +84,7 @@ public class RecipePopupManager extends MouseAdapter {
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.insets = new Insets(5, 10, 5, 10);
+		c.insets = new Insets(8, 8, 0, 8);
 		c.weightx = 1;
 		c.weighty = 0.5;
 
@@ -95,29 +110,47 @@ public class RecipePopupManager extends MouseAdapter {
 			panel.add(label, c);
 		}
 
-		panel.setBackground(new Color(216, 216, 216));
+		c.gridy++;
+		panel.add(Box.createVerticalStrut(1), c);
 		
+		panel.setBackground(new Color(216, 216, 216));
+
 		return panel;
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
-		currentComponent = e.getComponent();
-		timer.setRepeats(false);
-
-		timer.restart();
-	}
+//	@Override
+//	public void mouseEntered(MouseEvent e) {
+//		if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
+//		currentComponent = e.getComponent();
+//		timer.setRepeats(false);
+//
+//		timer.restart();
+//	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (popup == null) timer.restart();
+		if (popup == null) {
+			if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
+			currentComponent = e.getComponent();
+			timer.setRepeats(false);
+			timer.restart();
+		}
 		x = e.getXOnScreen() + 1;
 		y = e.getYOnScreen() + 1;
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
+//		e.getComponent().
+//		System.out.println(e.getComponent().getComponentAt(e.getPoint()));
+//		try {
+//			if (e.getComponent().getComponentAt(e.getPoint()).equals(panel)) return;
+//		} catch (Exception ex) {
+//			System.exit(0);
+//		}
+
+		if (e.getComponent().contains(e.getPoint())) return;
+
 		if (popup != null) {
 			popup.hide();
 			popup = null;

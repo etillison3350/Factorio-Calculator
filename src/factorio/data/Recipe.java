@@ -3,6 +3,7 @@ package factorio.data;
 import java.awt.Image;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.ImageIcon;
 
@@ -53,11 +54,11 @@ public class Recipe {
 	}
 
 	public Map<String, Float> getIngredients() {
-		return new HashMap<>(ingredients);
+		return new TreeMap<>(ingredients);
 	}
 
 	public Map<String, Float> getResults() {
-		return new HashMap<>(results);
+		return new TreeMap<>(results);
 	}
 
 	public double timeIn(Assembler assembler, double speedMultiplier) {

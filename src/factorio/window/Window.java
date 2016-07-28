@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -55,7 +56,6 @@ public class Window extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		inputPanel = new JPanel(new BorderLayout());
-//		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
 
 		search = new JTextField();
 		search.getDocument().addDocumentListener(new DocumentListener() {
@@ -83,6 +83,7 @@ public class Window extends JFrame {
 		inputList = new ProductList();
 		JScrollPane inputScroll = new JScrollPane(inputList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		inputScroll.getVerticalScrollBar().setUnitIncrement(Recipe.ICON_SIZE);
+		inputScroll.setBorder(BorderFactory.createEmptyBorder());
 		inputPanel.add(inputScroll, BorderLayout.CENTER);
 
 		calculate = new JButton("Calculate");
@@ -251,9 +252,15 @@ public class Window extends JFrame {
 		});
 		total.setRootVisible(false);
 		total.setCellRenderer(new CellRenderer());
+		
+		JScrollPane fullScroll = new JScrollPane(full);
+		full.setBorder(BorderFactory.createEmptyBorder());
+		
 		JScrollPane totalScroll = new JScrollPane(total);
 		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false, false));
-		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(full), totalScroll);
+		totalScroll.setBorder(BorderFactory.createEmptyBorder());
+		
+		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, fullScroll, totalScroll);
 		full_total.setDividerSize(7);
 		full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);
 
