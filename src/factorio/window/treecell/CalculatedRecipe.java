@@ -21,6 +21,8 @@ import factorio.data.Recipe;
 
 public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> {
 
+	public static String defaultFuel;
+	
 	public final boolean isFuel;
 
 	public final String product;
@@ -36,8 +38,8 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 */
 	private double recipeRate;
 
-	private double assemblers;
-	private AssemblerSettings settings;
+	private double assemblerCount;
+	private AssemblerSettings assembler;
 	private Map<String, CalculatedRecipe> ingredients = new TreeMap<>();
 
 	public CalculatedRecipe(String product, double rate) {
@@ -57,19 +59,19 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		for (Recipe r : Data.getRecipes()) {
 			if (r.getResults().containsKey(product) && !Util.isBlacklisted(r.name) && !banned.contains(r.name)) {
 				this.recipe = r;
+				this.assembler = AssemblerSettings.getDefaultSettings(this.recipe);
 
 				this.recipeRate = this.rate / this.recipe.getResults().get(product);
 
 				Collection<String> newBanned = new ArrayList<>(banned);
 				newBanned.add(r.name);
 				for (String ingredient : this.recipe.getIngredients().keySet()) {
-					ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.rate * this.recipe.getIngredients().get(ingredient), newBanned, false));
+					ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.recipeRate * this.recipe.getIngredients().get(ingredient) / this.assembler.getProductivity(), newBanned, false));
 				}
 
 				break;
 			}
 		}
-		if (this.recipe != null) this.settings = AssemblerSettings.getDefaultSettings(this.recipe);
 
 		calculateAssemblers();
 	}
@@ -83,10 +85,10 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		this.product = this.recipe.getResults().keySet().iterator().next();
 		this.recipeRate = rate;
 		this.rate = this.recipeRate * this.recipe.getResults().get(this.product);
-		this.settings = AssemblerSettings.getDefaultSettings(this.recipe);
+		this.assembler = AssemblerSettings.getDefaultSettings(this.recipe);
 
 		for (String ingredient : this.recipe.getIngredients().keySet()) {
-			ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.rate * this.recipe.getIngredients().get(ingredient)));
+			ingredients.put(ingredient, new CalculatedRecipe(ingredient, this.recipeRate * this.recipe.getIngredients().get(ingredient) / this.assembler.getProductivity()));
 		}
 
 		calculateAssemblers();
@@ -121,10 +123,10 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 *        </ul>
 	 */
 	public void setSettings(AssemblerSettings settings) {
-		this.settings = settings;
+		this.assembler = settings;
 
 		calculateAssemblers();
-		// updateIngredients();
+		updateIngredients();
 	}
 
 	/**
@@ -141,31 +143,31 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	public void setRateAndSettings(double rate, AssemblerSettings settings) {
 		this.rate = rate;
 		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(product).doubleValue();
-		this.settings = settings;
+		this.assembler = settings;
 
 		calculateAssemblers();
 		updateIngredients();
 	}
 
 	private void calculateAssemblers() {
-		if (this.recipe != null && this.settings != null) {
+		if (this.recipe != null && this.assembler != null) {
 			// The number of items produced per second by one assembler
-			double ips = recipe.getResults().get(this.product) * settings.getProductivity() / recipe.timeIn(settings.getAssembler(), settings.getSpeed());
+			double ips = recipe.getResults().get(this.product) * assembler.getProductivity() / recipe.timeIn(assembler.getAssembler(), assembler.getSpeed());
 
-			this.assemblers = rate / ips;
+			this.assemblerCount = rate / ips;
 		}
 	}
 
 	private void updateIngredients() {
 		if (this.recipe != null) {
 			for (String ingredient : ingredients.keySet()) {
-				ingredients.get(ingredient).setRate(this.rate * this.recipe.getIngredients().get(ingredient));
+				ingredients.get(ingredient).setRate(this.recipeRate * this.recipe.getIngredients().get(ingredient) / this.assembler.getProductivity());
 			}
 		}
 	}
 
 	public double getAssemblers() {
-		return assemblers;
+		return assemblerCount;
 	}
 
 	public Set<CalculatedRecipe> getIngredients() {
@@ -185,7 +187,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	}
 
 	public AssemblerSettings getSettings() {
-		return settings;
+		return assembler;
 	}
 
 	@Override
@@ -200,7 +202,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		JPanel ret = new JPanel(new FlowLayout(FlowLayout.LEADING, 1, 1));
 		TreeCell.addBorders(ret, selected, hasFocus);
 
-		String asm = this.settings != null ? String.format(" requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(true)) : "";
+		String asm = this.assembler != null ? String.format(" requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : "";
 		
 		String prod = String.format("<html><b>%s</b> at <b>%s/s", Data.nameFor(this.product), Util.formatPlural(this.rate, "</b> item"));
 		if (Util.hasMultipleRecipes(this.product)) {
@@ -218,7 +220,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	public String getRawString() {
 		String ret = String.format("%s at %s/s%s", Data.nameFor(this.product), Util.formatPlural(this.rate, "item"), Util.hasMultipleRecipes(this.product) ? String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle")) : "");
 
-		return ret + (this.settings != null ? String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(false)) : "");
+		return ret + (this.assembler != null ? String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(false)) : "");
 	}
 
 }

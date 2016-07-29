@@ -59,18 +59,4 @@ public class Assembler {
 	public int compareCategoriesTo(Assembler other) {
 		return this.getPrimaryCategory().compareTo(other.getPrimaryCategory());
 	}
-//
-//	@Override
-//	public int compareTo(Assembler o) {
-//		int d = compareCategoriesTo(o);
-//		if (d != 0) return d;
-//		d = Integer.compare(this.ingredients, o.ingredients);
-//		if (d != 0) return d;
-//		d = -Boolean.compare(this.burnerPowered, o.burnerPowered);
-//		if (d != 0) return d;
-//		d = Float.compare(this.speed, o.speed);
-//		if (d != 0) return d;
-//		return this.name.compareTo(o.name);
-//	}
-
 }

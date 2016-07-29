@@ -23,5 +23,9 @@ public class Module {
 		if (value == null) return 0;
 		return value;
 	}
+	
+	public boolean canCraft(String recipeName) {
+		return allowedRecipes.contains("all") || allowedRecipes.contains(recipeName);
+	}
 
 }

@@ -23,7 +23,7 @@ import factorio.data.Recipe;
 
 public class AssemblerSettings implements Comparable<AssemblerSettings> {
 
-	private static Map<String, AssemblerSettings> defaultSettings = new HashMap<>(); // TODO implement
+	private static Map<String, AssemblerSettings> defaultSettings = new HashMap<>(); // TODO finish
 
 	private static final Comparator<Assembler> ASSEMBLER_COMPARE = new Comparator<Assembler>() {
 
@@ -37,9 +37,9 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 			if (d != 0) return d;
 			return o1.name.compareTo(o2.name);
 		}
-		
+
 	};
-	
+
 	/**
 	 * The shutdown hook to write the settings to file
 	 */
@@ -64,7 +64,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		if (Files.exists(settings)) {
 			try {
 				Files.readAllLines(settings).forEach(str -> {
-					String[] parts = str.split("=", 1);
+					String[] parts = str.split("=", 2);
 					if (parts.length > 1) defaultSettings.put(parts[0], new AssemblerSettings(parts[1]));
 				});
 			} catch (IOException e) {}
@@ -84,7 +84,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	}
 
 	private AssemblerSettings(String str) {
-		String[] parts = str.split("|");
+		String[] parts = str.split("\\|", 2);
 		Assembler assembler = null;
 		for (Assembler a : Data.getAssemblers()) {
 			if (a.name.equals(parts[0])) {
@@ -97,7 +97,7 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 
 		List<Module> modules = new ArrayList<>();
 		if (parts.length > 1) {
-			for (String m : parts[1].split("+")) {
+			for (String m : parts[1].split("\\+")) {
 				for (Module module : Data.getModules()) {
 					if (module.name.equals(m)) {
 						modules.add(module);
@@ -161,25 +161,25 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	}
 
 	public static AssemblerSettings getDefaultSettings(Recipe recipe) {
-		return getDefaultSettings(recipe.type, recipe.getIngredients().size());
-	}
-
-	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
-		if (defaultSettings.containsKey(recipeType)) {
-			AssemblerSettings ret = defaultSettings.get(recipeType);
-			if (ret.assembler.ingredients < ingredients) {
+		if (defaultSettings.containsKey(recipe.type)) {
+			AssemblerSettings ret = defaultSettings.get(recipe.type);
+			if (ret.assembler.ingredients < recipe.getIngredients().size()) {
 				NavigableSet<Assembler> assemblers = new TreeSet<>(ASSEMBLER_COMPARE);
 				assemblers.addAll(Data.getAssemblers());
-				assemblers.removeIf(a -> !a.canCraftCategory(recipeType));
+				assemblers.removeIf(a -> !a.canCraftCategory(recipe.type));
 				do {
 					ret = new AssemblerSettings(assemblers.higher(ret.assembler), ret.modules);
 					if (ret.assembler == null) throw new IllegalArgumentException("Too many ingredients");
-				} while (ret.assembler.ingredients < ingredients);
+				} while (ret.assembler.ingredients < recipe.getIngredients().size());
 			}
+
+			List<Module> modules = new ArrayList<>(Arrays.asList(ret.modules));
+			modules.removeIf(m -> !m.canCraft(recipe.name));
+			ret = new AssemblerSettings(ret.assembler, modules.toArray(new Module[modules.size()]));
 			return ret;
 		}
-		AssemblerSettings ret = getDefaultDefaults(recipeType);
-		defaultSettings.put(recipeType, ret);
+		AssemblerSettings ret = getDefaultDefaults(recipe.type);
+		defaultSettings.put(recipe.type, ret);
 		return ret;
 	}
 

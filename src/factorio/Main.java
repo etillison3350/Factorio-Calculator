@@ -23,6 +23,8 @@ public class Main {
 		AssemblerSettings.readSettings();
 		loadingDialog.dispose();
 
+		System.out.println();
+		
 		Window window = new Window();
 		window.setVisible(true);
 	}

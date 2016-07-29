@@ -89,12 +89,12 @@ public class ProductListRow extends JPanel {
 
 			@Override
 			public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-				fb.insertString(offset, string.replaceAll("[^\\d\\.\\-\\+\\*\\/]+", ""), attr);
+				fb.insertString(offset, string.replaceAll("[^\\d\\.\\-\\+\\*\\/\\(\\)]+", ""), attr);
 			}
 
 			@Override
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-				fb.replace(offset, length, text.replaceAll("[^\\d\\.\\-\\+\\*\\/]+", ""), attrs);
+				fb.replace(offset, length, text.replaceAll("[^\\d\\.\\-\\+\\*\\/\\(\\)]+", ""), attrs);
 			}
 
 		});
