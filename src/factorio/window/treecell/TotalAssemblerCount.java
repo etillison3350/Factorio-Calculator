@@ -38,7 +38,7 @@ public class TotalAssemblerCount implements TreeCell, Comparable<TotalAssemblerC
 
 		return ret;
 	}
-	
+
 	@Override
 	public String getRawString() {
 		String power = assembler.getAssembler().burnerPowered || assembler.getAssembler().energy < 0.0001 ? "" : " requires " + Util.formatEnergy((double) assemblerCount * assembler.getAssembler().energy);

@@ -57,7 +57,7 @@ public class ProductListRow extends JPanel {
 		this.label.setIcon(recipe.getIcon());
 
 		this.add(this.label);
-		
+
 		RecipePopupManager.registerComponent(this.label, recipe);
 
 		JPanel right = new JPanel(new GridBagLayout());
@@ -151,7 +151,7 @@ public class ProductListRow extends JPanel {
 	 * <code>&nbsp;public float getRate()</code><br>
 	 * <br>
 	 * @return The number of recipe cycles per second the user has specified in this <code>ProductListRow</code>'s text field.
-	 * </ul>
+	 *         </ul>
 	 */
 	public double getRate() {
 		switch (options.getSelectedItem().toString()) {

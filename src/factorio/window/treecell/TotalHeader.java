@@ -20,9 +20,9 @@ public class TotalHeader implements TreeCell {
 	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus) {
 		JLabel label = new JLabel(text, TreeCell.ICON_BLANK, SwingConstants.LEADING);
 		label.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12 + 2 * headerLevel));
-		
+
 		TreeCell.addBorders(label, selected, hasFocus);
-		
+
 		return label;
 	}
 

@@ -20,11 +20,11 @@ public class ShadowLabel extends JLabel {
 
 	public ShadowLabel(String text, Icon image) {
 		super(image);
-		
+
 		this.text = text;
 		this.setForeground(Color.WHITE);
 		this.setBackground(Color.BLACK);
-		
+
 		this.setOpaque(false);
 	}
 
@@ -40,7 +40,7 @@ public class ShadowLabel extends JLabel {
 	@Override
 	protected void paintComponent(Graphics gg) {
 		super.paintComponent(gg);
-		
+
 		if (!(gg instanceof Graphics2D)) return;
 		Graphics2D g = (Graphics2D) gg;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -51,9 +51,9 @@ public class ShadowLabel extends JLabel {
 		int strWidth = fm.stringWidth(text);
 
 		g.translate(this.getWidth() - strWidth - 2, this.getHeight() - 2);
-		
+
 		GlyphVector vector = this.getFont().createGlyphVector(g.getFontRenderContext(), text);
-		
+
 		Shape ch = vector.getOutline();
 		g.setStroke(new BasicStroke(2));
 		g.setColor(this.getBackground());

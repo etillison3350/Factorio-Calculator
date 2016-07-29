@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -77,10 +78,10 @@ public class RecipePopupManager extends MouseAdapter {
 			img = new BufferedImage(Recipe.ICON_SIZE, Recipe.ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE);
 		}
 		TIME = new ImageIcon(img);
-		
+
 		timer.setRepeats(false);
 	}
-	
+
 	public static void registerComponent(Component c, Recipe r) {
 		registeredComponents.put(c, r);
 		c.addMouseListener(listener);
@@ -139,6 +140,8 @@ public class RecipePopupManager extends MouseAdapter {
 		panel.add(Box.createVerticalStrut(1), c);
 
 		panel.setBackground(new Color(216, 216, 216));
+
+		panel.setBorder(BorderFactory.createRaisedBevelBorder());
 
 		return panel;
 	}

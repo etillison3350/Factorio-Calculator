@@ -1,14 +1,16 @@
 package factorio.data;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public class Assembler {
 
-	private final SortedSet<String> categories = new TreeSet<>();
+	private static final Map<String, Set<Assembler>> groupedAssemblers = new HashMap<>();
+
+	private final Set<String> categories = new HashSet<>();
 	private final Set<String> allowedEffects = new HashSet<>();
 	public final String name;
 	public final int ingredients;
@@ -19,6 +21,13 @@ public class Assembler {
 	public final float speed;
 
 	protected Assembler(String name, int ingredients, float speed, long energy, int modules, boolean burner, float effectivity, Collection<String> categories, Collection<String> effects) {
+		for (String cat : categories) {
+			if (!groupedAssemblers.containsKey(cat)) {
+				groupedAssemblers.put(cat, new HashSet<>());
+			}
+			groupedAssemblers.get(cat).add(this);
+		}
+
 		this.name = name;
 		this.ingredients = ingredients;
 		this.speed = speed;
@@ -34,13 +43,34 @@ public class Assembler {
 		return categories.contains(category);
 	}
 
-	public int compareCategoriesTo(Assembler other) {
-		Set<String> intersect = new HashSet<>(other.categories);
-		intersect.retainAll(categories);
-		if (intersect.size() != 0) {
-			return 0;
+	private String getPrimaryCategory() {
+		int max = 0;
+		String best = "";
+		for (String cat : categories) {
+			int size = groupedAssemblers.get(cat).size();
+			if (max < size || (max == size && cat.length() > best.length())) {
+				max = size;
+				best = cat;
+			}
 		}
-		return categories.first().compareTo(other.categories.first());
+		return best;
 	}
+	
+	public int compareCategoriesTo(Assembler other) {
+		return this.getPrimaryCategory().compareTo(other.getPrimaryCategory());
+	}
+//
+//	@Override
+//	public int compareTo(Assembler o) {
+//		int d = compareCategoriesTo(o);
+//		if (d != 0) return d;
+//		d = Integer.compare(this.ingredients, o.ingredients);
+//		if (d != 0) return d;
+//		d = -Boolean.compare(this.burnerPowered, o.burnerPowered);
+//		if (d != 0) return d;
+//		d = Float.compare(this.speed, o.speed);
+//		if (d != 0) return d;
+//		return this.name.compareTo(o.name);
+//	}
 
 }

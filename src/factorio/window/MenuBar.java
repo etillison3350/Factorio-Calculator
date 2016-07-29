@@ -15,7 +15,7 @@ public class MenuBar extends JMenuBar implements ActionListener {
 	private static final long serialVersionUID = 6631989072879466832L;
 
 	private final MenuBarDelegate delegate;
-	
+
 	private final JMenu file;
 	private final JMenuItem reset;
 	private final JMenuItem open;
@@ -28,10 +28,10 @@ public class MenuBar extends JMenuBar implements ActionListener {
 	public MenuBar() {
 		this(null);
 	}
-	
+
 	public MenuBar(MenuBarDelegate delegate) {
 		this.delegate = delegate;
-		
+
 		int control = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		file = new JMenu("File");
@@ -59,7 +59,7 @@ public class MenuBar extends JMenuBar implements ActionListener {
 		exit = new JMenuItem("Exit");
 		if (!System.getProperty("os.name").contains("Mac")) {
 			file.addSeparator();
-			
+
 			exit.setMnemonic(KeyEvent.VK_E);
 			exit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, KeyEvent.ALT_DOWN_MASK));
 			exit.addActionListener(this);

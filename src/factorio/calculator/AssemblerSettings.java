@@ -1,11 +1,19 @@
 package factorio.calculator;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import factorio.Util;
 import factorio.data.Assembler;
@@ -17,40 +25,96 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 
 	private static Map<String, AssemblerSettings> defaultSettings = new HashMap<>(); // TODO implement
 
-	private Assembler assembler;
-	private Module[] modules;
+	private static final Comparator<Assembler> ASSEMBLER_COMPARE = new Comparator<Assembler>() {
+
+		@Override
+		public int compare(Assembler o1, Assembler o2) {
+			int d = -Integer.compare(o1.ingredients, o2.ingredients);
+			if (d != 0) return d;
+			d = Boolean.compare(o1.burnerPowered, o2.burnerPowered);
+			if (d != 0) return d;
+			d = -Float.compare(o1.speed, o2.speed);
+			if (d != 0) return d;
+			return o1.name.compareTo(o2.name);
+		}
+		
+	};
+	
+	/**
+	 * The shutdown hook to write the settings to file
+	 */
+	private static final Thread WRITE_SETTINGS = new Thread(new Runnable() {
+
+		@Override
+		public void run() {
+			Path settings = Paths.get("config/defaults.cfg");
+
+			String settingsString = defaultSettings.keySet().stream().map(str -> str + '=' + defaultSettings.get(str)).collect(Collectors.joining("\n"));
+
+			try {
+				Files.createDirectory(Paths.get("config"));
+				Files.write(settings, settingsString.getBytes());
+				Files.createFile(settings);
+			} catch (IOException e) {}
+		}
+	});
+
+	public static void readSettings() {
+		Path settings = Paths.get("config/defaults.cfg");
+		if (Files.exists(settings)) {
+			try {
+				Files.readAllLines(settings).forEach(str -> {
+					String[] parts = str.split("=", 1);
+					if (parts.length > 1) defaultSettings.put(parts[0], new AssemblerSettings(parts[1]));
+				});
+			} catch (IOException e) {}
+		}
+
+		try {
+			Runtime.getRuntime().addShutdownHook(WRITE_SETTINGS);
+		} catch (Exception e) {}
+	}
+
+	private final Assembler assembler;
+	private final Module[] modules;
 
 	public AssemblerSettings(Assembler assembler, Module... modules) {
 		this.assembler = assembler;
 		this.modules = modules;
 	}
 
+	private AssemblerSettings(String str) {
+		String[] parts = str.split("|");
+		Assembler assembler = null;
+		for (Assembler a : Data.getAssemblers()) {
+			if (a.name.equals(parts[0])) {
+				assembler = a;
+				break;
+			}
+		}
+		if (assembler == null) throw new IllegalArgumentException("Could not find assembler " + parts[0]);
+		this.assembler = assembler;
+
+		List<Module> modules = new ArrayList<>();
+		if (parts.length > 1) {
+			for (String m : parts[1].split("+")) {
+				for (Module module : Data.getModules()) {
+					if (module.name.equals(m)) {
+						modules.add(module);
+						break;
+					}
+				}
+			}
+		}
+		this.modules = modules.toArray(new Module[modules.size()]);
+	}
+
 	public Assembler getAssembler() {
 		return assembler;
 	}
 
-	/**
-	 * <ul>
-	 * <b><i>setAssembler</i></b><br>
-	 * <br>
-	 * <code>&nbsp;void setAssembler()</code><br>
-	 * <br>
-	 * Sets this {@code AssemblerSettings}' assembler.
-	 * @param assembler - The assembler to set
-	 * @throws NullPointerException if <code>assembler</code> is <code>null</code>
-	 *         </ul>
-	 */
-	public void setAssembler(Assembler assembler) {
-		if (assembler == null) throw new NullPointerException();
-		this.assembler = assembler;
-	}
-
 	public Module[] getModules() {
 		return modules;
-	}
-
-	public void setModules(Module... modules) {
-		this.modules = modules;
 	}
 
 	/**
@@ -92,16 +156,31 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		return (double) Math.max(0.2, 1 + Arrays.stream(modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());// .reduce(1, (a, b) -> a + b));
 	}
 
+	public static AssemblerSettings getDefaultDefaults(String recipeType) {
+		return new AssemblerSettings(Data.getAssemblers().stream().filter(a -> a.canCraftCategory(recipeType)).sorted(ASSEMBLER_COMPARE).findFirst().get());
+	}
+
 	public static AssemblerSettings getDefaultSettings(Recipe recipe) {
 		return getDefaultSettings(recipe.type, recipe.getIngredients().size());
 	}
 
 	public static AssemblerSettings getDefaultSettings(String recipeType, int ingredients) {
-		// TODO
-		for (Assembler a : Data.getAssemblers()) {
-			if (a.canCraftCategory(recipeType) && a.ingredients >= ingredients && Math.random() < 0.5) return new AssemblerSettings(a, Data.getModules().stream().limit((long) Math.floor(a.modules * Math.random())).toArray(size -> new Module[size]));
+		if (defaultSettings.containsKey(recipeType)) {
+			AssemblerSettings ret = defaultSettings.get(recipeType);
+			if (ret.assembler.ingredients < ingredients) {
+				NavigableSet<Assembler> assemblers = new TreeSet<>(ASSEMBLER_COMPARE);
+				assemblers.addAll(Data.getAssemblers());
+				assemblers.removeIf(a -> !a.canCraftCategory(recipeType));
+				do {
+					ret = new AssemblerSettings(assemblers.higher(ret.assembler), ret.modules);
+					if (ret.assembler == null) throw new IllegalArgumentException("Too many ingredients");
+				} while (ret.assembler.ingredients < ingredients);
+			}
+			return ret;
 		}
-		return getDefaultSettings(recipeType, ingredients);
+		AssemblerSettings ret = getDefaultDefaults(recipeType);
+		defaultSettings.put(recipeType, ret);
+		return ret;
 	}
 
 	public String getBonusString(boolean html) {
@@ -159,10 +238,18 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		return true;
 	}
 
+	public String toString() {
+		return this.assembler.name + "|" + Arrays.stream(this.modules).map(m -> m.name).collect(Collectors.joining("+"));
+	}
+
 	@Override
 	public int compareTo(AssemblerSettings o) {
 		int d = this.assembler.compareCategoriesTo(o.assembler);
 		if (d != 0) return d;
-		return Double.compare(this.assembler.speed * this.getSpeed(), o.assembler.speed * o.getSpeed());
+		d = Double.compare(this.assembler.speed * this.getSpeed(), o.assembler.speed * o.getSpeed());
+		if (d != 0) return d;
+		d = -Boolean.compare(this.assembler.burnerPowered, o.assembler.burnerPowered);
+		if (d != 0) return d;
+		return Integer.compare(this.assembler.ingredients, o.assembler.ingredients);
 	}
 }

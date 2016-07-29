@@ -200,13 +200,16 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		JPanel ret = new JPanel(new FlowLayout(FlowLayout.LEADING, 1, 1));
 		TreeCell.addBorders(ret, selected, hasFocus);
 
+		String asm = this.settings != null ? String.format(" requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(true)) : "";
+		
 		String prod = String.format("<html><b>%s</b> at <b>%s/s", Data.nameFor(this.product), Util.formatPlural(this.rate, "</b> item"));
 		if (Util.hasMultipleRecipes(this.product)) {
 			prod += " (using ";
-			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle")), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)%s</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle"), asm), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+		} else {
+			prod += asm;
 		}
 		ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.product, false), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-		if (this.settings != null) ret.add(new JLabel(String.format("<html>requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblers), Data.nameFor(this.settings.getAssembler().name), this.settings.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
 		return ret;
 	}

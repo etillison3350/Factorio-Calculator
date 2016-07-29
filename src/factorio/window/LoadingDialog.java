@@ -20,7 +20,7 @@ public class LoadingDialog extends JFrame {
 	private static final long serialVersionUID = 1042158646178608832L;
 
 	private static final Icon SPLASH;
-	
+
 	static {
 		ImageIcon splash;
 		try {
@@ -28,7 +28,7 @@ public class LoadingDialog extends JFrame {
 		} catch (Exception e) {
 			splash = new ImageIcon(new BufferedImage(307, 51, BufferedImage.TYPE_INT_ARGB_PRE));
 		}
-		SPLASH = splash; 
+		SPLASH = splash;
 	}
 
 	private final JProgressBar progress;

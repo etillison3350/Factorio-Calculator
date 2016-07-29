@@ -12,7 +12,7 @@ public interface MenuBarDelegate {
 	 * </ul>
 	 */
 	public void reset();
-	
+
 	/**
 	 * <ul>
 	 * <b><i>save</i></b><br>
@@ -45,7 +45,7 @@ public interface MenuBarDelegate {
 	 * </ul>
 	 */
 	public void exit();
-	
+
 	/**
 	 * <ul>
 	 * <b><i>changeMods</i></b><br>
@@ -56,7 +56,7 @@ public interface MenuBarDelegate {
 	 * </ul>
 	 */
 	public void changeMods();
-	
+
 	/**
 	 * <ul>
 	 * <b><i>changeDefaults</i></b><br>

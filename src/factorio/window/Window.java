@@ -192,7 +192,7 @@ public class Window extends JFrame {
 						}
 					}
 				}
-				
+
 				boolean indentOne = min.size() > 1;
 				if (indentOne) {
 					selected.addAll(min);
@@ -206,7 +206,7 @@ public class Window extends JFrame {
 						}
 					});
 				}
-				
+
 				boolean shouldIndent = true;
 
 				outer: for (TreePath path : selected) {
@@ -218,11 +218,11 @@ public class Window extends JFrame {
 					shouldIndent = false;
 					break;
 				}
-				
+
 				String copy = "";
 				for (TreePath path : selected) {
 					if (!copy.isEmpty()) copy += "\n";
-					
+
 					String line = "";
 					boolean isHeader = false;
 					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
@@ -237,13 +237,12 @@ public class Window extends JFrame {
 						line += path.getLastPathComponent().toString();
 					}
 
-					
 					if (shouldIndent) {
 						for (int n = min.iterator().next().getPathCount(); n < path.getPathCount() + (indentOne && !isHeader ? 1 : 0); n++) {
 							line = "\t" + line;
 						}
 					}
-					
+
 					copy += line;
 				}
 
@@ -252,14 +251,14 @@ public class Window extends JFrame {
 		});
 		total.setRootVisible(false);
 		total.setCellRenderer(new CellRenderer());
-		
+
 		JScrollPane fullScroll = new JScrollPane(full);
 		full.setBorder(BorderFactory.createEmptyBorder());
-		
+
 		JScrollPane totalScroll = new JScrollPane(total);
 		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false, false));
 		totalScroll.setBorder(BorderFactory.createEmptyBorder());
-		
+
 		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, fullScroll, totalScroll);
 		full_total.setDividerSize(7);
 		full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);

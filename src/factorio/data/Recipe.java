@@ -10,7 +10,7 @@ import javax.swing.ImageIcon;
 public class Recipe {
 
 	public static final int ICON_SIZE = 22, SMALL_ICON_SIZE = 16;
-	
+
 	public final String name, type;
 	private final Map<String, Float> results = new HashMap<>();
 	private final Map<String, Float> ingredients = new HashMap<>();
@@ -86,7 +86,7 @@ public class Recipe {
 	public ImageIcon getIcon() {
 		return icon;
 	}
-	
+
 	public ImageIcon getSmallIcon() {
 		return smallIcon;
 	}

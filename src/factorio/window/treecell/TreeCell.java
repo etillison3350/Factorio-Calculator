@@ -16,7 +16,7 @@ public interface TreeCell {
 	public static final Icon ICON_BLANK = new ImageIcon(new BufferedImage(1, Recipe.SMALL_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE));
 
 	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus);
-	
+
 	public String getRawString();
 
 	/**
@@ -36,5 +36,5 @@ public interface TreeCell {
 		c.setBackground(UIManager.getColor(sel ? "Tree.selectionBackground" : "Tree.background"));
 		c.setBorder(hasFocus ? BorderFactory.createLineBorder(UIManager.getColor("Tree.selectionBorderColor")) : BorderFactory.createEmptyBorder(1, 1, 1, 1));
 	}
-	
+
 }

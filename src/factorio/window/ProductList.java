@@ -96,14 +96,14 @@ public class ProductList extends JPanel {
 			container.repaint();
 		}
 	}
-	
+
 	public Map<Recipe, Number> getRates() {
 		Map<Recipe, Number> ret = new HashMap<>();
 		for (ProductListRow row : listRows) {
 			double rate = row.getRate();
 			if (rate > 0) ret.put(row.recipe, rate);
 		}
-		
+
 		return ret;
 	}
 }
