@@ -2,10 +2,11 @@ package factorio.window;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -24,6 +25,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -36,90 +38,124 @@ import factorio.window.treecell.CellRenderer;
 import factorio.window.treecell.TotalHeader;
 import factorio.window.treecell.TreeCell;
 
+/**
+ * The main {@link JFrame}
+ * @author ricky3350
+ */
 public class Window extends JFrame {
 
 	private static final long serialVersionUID = -377970844785993226L;
 
-	private final JSplitPane in_out, full_total;
+	/**
+	 * A {@link JSplitPane} dividing the input and ouput sides of the window
+	 */
+	private final JSplitPane in_out;
 
+	/**
+	 * A {@link JSplitPane} dividing the {@link #full} panel from the
+	 * {@link #total} panel
+	 */
+	private final JSplitPane full_total;
+
+	/**
+	 * The input panel
+	 */
 	private final JPanel inputPanel;
-	private final JTree full, total;
 
+	/**
+	 * The tree that displays each ingredient separately
+	 * @see {@link Calculation#getAsTreeNode()}
+	 */
+	private final JTree full;
+
+	/**
+	 * The tree that displays the sums of the calculation
+	 * @see {@link Calculation#getTotalTreeNode()}
+	 */
+	private final JTree total;
+
+	/**
+	 * A search bar
+	 */
 	private final JTextField search;
+
+	/**
+	 * The product list
+	 */
 	private final ProductList inputList;
+
+	/**
+	 * The button that executes the {@link Calculation}
+	 */
 	private final JButton calculate;
 
 	public Window() {
 		super("Factorio Calculator");
 		this.setSize(1024, 768);
-		this.setExtendedState(Window.MAXIMIZED_BOTH);
+		this.setExtendedState(Frame.MAXIMIZED_BOTH);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		inputPanel = new JPanel(new BorderLayout());
+		this.inputPanel = new JPanel(new BorderLayout());
 
-		search = new JTextField();
-		search.getDocument().addDocumentListener(new DocumentListener() {
+		this.search = new JTextField();
+		this.search.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				update();
+				this.update();
 			}
 
 			@Override
 			public void insertUpdate(DocumentEvent e) {
-				update();
+				this.update();
 			}
 
 			private void update() {
-				inputList.setSearchKey(search.getText().trim().toLowerCase().replace('-', ' '));
+				Window.this.inputList.setSearchKey(Window.this.search.getText().trim().toLowerCase().replace('-', ' '));
 			}
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {}
 		});
-		search.setMaximumSize(new Dimension(search.getMaximumSize().width, search.getPreferredSize().height));
-		inputPanel.add(search, BorderLayout.NORTH);
+		this.search.setMaximumSize(new Dimension(this.search.getMaximumSize().width, this.search.getPreferredSize().height));
+		this.inputPanel.add(this.search, BorderLayout.NORTH);
 
-		inputList = new ProductList();
-		JScrollPane inputScroll = new JScrollPane(inputList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		inputScroll.getVerticalScrollBar().setUnitIncrement(Recipe.ICON_SIZE);
+		this.inputList = new ProductList();
+		final JScrollPane inputScroll = new JScrollPane(this.inputList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		inputScroll.getVerticalScrollBar().setUnitIncrement(Recipe.LARGE_ICON_SIZE);
 		inputScroll.setBorder(BorderFactory.createEmptyBorder());
-		inputPanel.add(inputScroll, BorderLayout.CENTER);
+		this.inputPanel.add(inputScroll, BorderLayout.CENTER);
 
-		calculate = new JButton("Calculate");
-		calculate.addActionListener(new ActionListener() {
+		this.calculate = new JButton("Calculate");
+		this.calculate.addActionListener(e -> {
+			final Map<Recipe, Number> rates = Window.this.inputList.getRates();
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Map<Recipe, Number> rates = inputList.getRates();
+			final Calculation calc = new Calculation(rates);
 
-				Calculation calc = new Calculation(rates);
+			((DefaultTreeModel) Window.this.full.getModel()).setRoot(calc.getAsTreeNode());
+			for (int i1 = 0; i1 < Window.this.full.getRowCount(); i1++) {
+				Window.this.full.expandRow(i1);
+			}
 
-				((DefaultTreeModel) full.getModel()).setRoot(calc.getAsTreeNode());
-				for (int i = 0; i < full.getRowCount(); i++) {
-					full.expandRow(i);
-				}
-
-				((DefaultTreeModel) total.getModel()).setRoot(calc.getTotalTreeNode());
-				for (int i = 0; i < total.getRowCount(); i++) {
-					total.expandRow(i);
-				}
+			((DefaultTreeModel) Window.this.total.getModel()).setRoot(calc.getTotalTreeNode());
+			for (int i2 = 0; i2 < Window.this.total.getRowCount(); i2++) {
+				Window.this.total.expandRow(i2);
 			}
 		});
-		inputPanel.add(calculate, BorderLayout.SOUTH);
+		this.inputPanel.add(this.calculate, BorderLayout.SOUTH);
 
-		full = new JTree(new DefaultMutableTreeNode());
-		full.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "copy");
-		full.getActionMap().put("copy", new AbstractAction() {
+		this.full = new JTree(new DefaultMutableTreeNode());
+		this.full.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "copy");
+		this.full.getActionMap().put("copy", new AbstractAction() {
 
 			private static final long serialVersionUID = 490257379525148970L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TreePath[] selected = full.getSelectionPaths();
+				final TreePath[] selected = Window.this.full.getSelectionPaths();
 				if (selected == null || selected.length <= 0) return;
 
-				Set<TreePath> min = Arrays.stream(selected).collect(HashSet::new, (set, path) -> {
+				final Set<TreePath> min = Arrays.stream(selected).collect(HashSet::new, (set, path) -> {
 					if (set.isEmpty()) {
 						set.add(path);
 					} else {
@@ -130,9 +166,9 @@ public class Window extends JFrame {
 
 				boolean shouldIndent = true;
 
-				outer: for (TreePath path : selected) {
+				outer: for (final TreePath path : selected) {
 					if (min.contains(path)) continue;
-					for (TreePath p : min) {
+					for (final TreePath p : min) {
 						if (p.isDescendant(path)) continue outer;
 					}
 
@@ -141,7 +177,7 @@ public class Window extends JFrame {
 				}
 
 				String copy = "";
-				for (TreePath path : selected) {
+				for (final TreePath path : selected) {
 					if (!copy.isEmpty()) copy += "\n";
 					if (shouldIndent) {
 						for (int n = min.iterator().next().getPathCount(); n < path.getPathCount(); n++) {
@@ -149,7 +185,7 @@ public class Window extends JFrame {
 						}
 					}
 					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-						DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 						if (node.getUserObject() instanceof TreeCell) {
 							copy += ((TreeCell) node.getUserObject()).getRawString();
 						} else {
@@ -163,29 +199,29 @@ public class Window extends JFrame {
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copy), null);
 			}
 		});
-		full.setRootVisible(false);
-		full.setShowsRootHandles(true);
-		full.setCellRenderer(new CellRenderer());
+		this.full.setRootVisible(false);
+		this.full.setShowsRootHandles(true);
+		this.full.setCellRenderer(new CellRenderer());
 
-		total = new JTree(new DefaultMutableTreeNode());
-		total.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "copy");
-		total.getActionMap().put("copy", new AbstractAction() {
+		this.total = new JTree(new DefaultMutableTreeNode());
+		this.total.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "copy");
+		this.total.getActionMap().put("copy", new AbstractAction() {
 
 			private static final long serialVersionUID = -3232571785198520875L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TreePath[] selectedPaths = total.getSelectionPaths();
+				final TreePath[] selectedPaths = Window.this.total.getSelectionPaths();
 				if (selectedPaths == null || selectedPaths.length <= 0) return;
 
-				Set<TreePath> selected = new TreeSet<>(Comparator.comparing(path -> total.getRowForPath(path)));
+				final Set<TreePath> selected = new TreeSet<>(Comparator.comparing(path -> Window.this.total.getRowForPath(path)));
 				Arrays.stream(selectedPaths).forEach(selected::add);
-				Set<TreePath> min = new HashSet<>();
+				final Set<TreePath> min = new HashSet<>();
 
-				DefaultMutableTreeNode root = (DefaultMutableTreeNode) ((DefaultTreeModel) total.getModel()).getRoot();
+				final DefaultMutableTreeNode root = (DefaultMutableTreeNode) ((DefaultTreeModel) Window.this.total.getModel()).getRoot();
 				for (int c = 0; c < root.getChildCount(); c++) {
-					TreePath newPath = new TreePath(new Object[] {root, root.getChildAt(c)});
-					for (TreePath path : selectedPaths) {
+					final TreePath newPath = new TreePath(new Object[] {root, root.getChildAt(c)});
+					for (final TreePath path : selectedPaths) {
 						if (newPath.isDescendant(path)) {
 							min.add(newPath);
 							break;
@@ -193,7 +229,7 @@ public class Window extends JFrame {
 					}
 				}
 
-				boolean indentOne = min.size() > 1;
+				final boolean indentOne = min.size() > 1;
 				if (indentOne) {
 					selected.addAll(min);
 				} else {
@@ -209,9 +245,9 @@ public class Window extends JFrame {
 
 				boolean shouldIndent = true;
 
-				outer: for (TreePath path : selected) {
+				outer: for (final TreePath path : selected) {
 					if (min.contains(path)) continue;
-					for (TreePath p : min) {
+					for (final TreePath p : min) {
 						if (p.isDescendant(path)) continue outer;
 					}
 
@@ -220,13 +256,13 @@ public class Window extends JFrame {
 				}
 
 				String copy = "";
-				for (TreePath path : selected) {
+				for (final TreePath path : selected) {
 					if (!copy.isEmpty()) copy += "\n";
 
 					String line = "";
 					boolean isHeader = false;
 					if (path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-						DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 						if (node.getUserObject() instanceof TreeCell) {
 							isHeader = node.getUserObject() instanceof TotalHeader;
 							line += ((TreeCell) node.getUserObject()).getRawString();
@@ -249,24 +285,24 @@ public class Window extends JFrame {
 				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copy), null);
 			}
 		});
-		total.setRootVisible(false);
-		total.setCellRenderer(new CellRenderer());
+		this.total.setRootVisible(false);
+		this.total.setCellRenderer(new CellRenderer());
 
-		JScrollPane fullScroll = new JScrollPane(full);
-		full.setBorder(BorderFactory.createEmptyBorder());
+		final JScrollPane fullScroll = new JScrollPane(this.full);
+		this.full.setBorder(BorderFactory.createEmptyBorder());
 
-		JScrollPane totalScroll = new JScrollPane(total);
+		final JScrollPane totalScroll = new JScrollPane(this.total);
 		totalScroll.setColumnHeaderView(new TotalHeader("Totals", 3).getTreeCellRendererComponent(false, false));
 		totalScroll.setBorder(BorderFactory.createEmptyBorder());
 
-		full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, fullScroll, totalScroll);
-		full_total.setDividerSize(7);
-		full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);
+		this.full_total = new JSplitPane(JSplitPane.VERTICAL_SPLIT, fullScroll, totalScroll);
+		this.full_total.setDividerSize(7);
+		this.full_total.setDividerLocation(Toolkit.getDefaultToolkit().getScreenSize().height / 2);
 
-		in_out = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputPanel, full_total);
-		in_out.setDividerSize(7);
-		in_out.setDividerLocation(492);
-		this.add(in_out);
+		this.in_out = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.inputPanel, this.full_total);
+		this.in_out.setDividerSize(7);
+		this.in_out.setDividerLocation(492);
+		this.add(this.in_out);
 
 		this.setJMenuBar(new MenuBar());
 	}

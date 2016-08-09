@@ -6,6 +6,10 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+/**
+ * A {@link DefaultTreeCellRenderer} for {@link TreeCell}s.
+ * @author ricky3350
+ */
 public class CellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 7349604339432840092L;

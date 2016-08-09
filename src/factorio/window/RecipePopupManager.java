@@ -10,8 +10,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -36,72 +34,124 @@ import factorio.Util;
 import factorio.data.Data;
 import factorio.data.Recipe;
 
+/**
+ * A non-instanitable manager for {@link Popup}s when the recipe {@link JLabel}s in {@link ProductListRow}s are hovered over.
+ * @author etillison
+ */
 public class RecipePopupManager extends MouseAdapter {
 
+	/**
+	 * The image for time
+	 */
 	private static final ImageIcon TIME;
 
+	/**
+	 * An instance of {@code RecipePopupManager} to serve as a mouse listener
+	 */
 	private static final RecipePopupManager listener = new RecipePopupManager();
 
 	private RecipePopupManager() {}
 
+	/**
+	 * A {@link Map} mapping {@link Component}s that are registered by the {@code RecipePopupManager} to the {@link Recipe}s
+	 * that they correspond to
+	 */
 	private static final Map<Component, Recipe> registeredComponents = new HashMap<>();
 
-	private static final Timer timer = new Timer(50, new ActionListener() {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			JPanel panel = createRecipePanel(registeredComponents.get(currentComponent));
-			panel.addMouseMotionListener(new MouseMotionAdapter() {
-
-				@Override
-				public void mouseMoved(MouseEvent e) {
-					Point converted = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), currentComponent);
-					if (currentComponent != null && !currentComponent.contains(converted)) {
-						listener.mouseExited(new MouseEvent(currentComponent, MouseEvent.MOUSE_EXITED, e.getWhen(), e.getModifiers(), converted.x, converted.y, e.getClickCount(), e.isPopupTrigger()));
-					}
-				}
-			});
-			popup = PopupFactory.getSharedInstance().getPopup(currentComponent, panel, x, y);
-			popup.show();
-		}
-	});
+	/**
+	 * The {@link Popup} that is shown
+	 */
 	private static Popup popup;
 
+	/**
+	 * The {@link Component} that is currently being hovered over
+	 */
 	private static Component currentComponent;
+
+	/**
+	 * The position of the mouse pointer
+	 */
 	private static int x, y;
+
+	/**
+	 * The {@link Timer} that controls the showing of the {@link #popup}
+	 */
+	private static final Timer timer = new Timer(50, e -> {
+		final JPanel panel = createRecipePanel(registeredComponents.get(currentComponent));
+		panel.addMouseMotionListener(new MouseMotionAdapter() {
+
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				final Point converted = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), currentComponent);
+				if (currentComponent != null && !currentComponent.contains(converted)) {
+					listener.mouseExited(new MouseEvent(currentComponent, MouseEvent.MOUSE_EXITED, e.getWhen(), e.getModifiers(), converted.x, converted.y, e.getClickCount(), e.isPopupTrigger()));
+				}
+			}
+		});
+		popup = PopupFactory.getSharedInstance().getPopup(currentComponent, panel, x, y);
+		popup.show();
+	});
 
 	static {
 		Image img;
 		try {
-			img = Toolkit.getDefaultToolkit().getImage(Paths.get("resources/clock-icon.png").toUri().toURL()).getScaledInstance(Recipe.ICON_SIZE, Recipe.ICON_SIZE, Image.SCALE_SMOOTH);
-		} catch (MalformedURLException e) {
-			img = new BufferedImage(Recipe.ICON_SIZE, Recipe.ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE);
+			img = Toolkit.getDefaultToolkit().getImage(Paths.get("resources/clock-icon.png").toUri().toURL()).getScaledInstance(Recipe.LARGE_ICON_SIZE, Recipe.LARGE_ICON_SIZE, Image.SCALE_SMOOTH);
+		} catch (final MalformedURLException e) {
+			img = new BufferedImage(Recipe.LARGE_ICON_SIZE, Recipe.LARGE_ICON_SIZE, BufferedImage.TYPE_INT_ARGB_PRE);
 		}
 		TIME = new ImageIcon(img);
 
 		timer.setRepeats(false);
 	}
 
+	/**
+	 * <ul>
+	 * <b><i>registerComponent</i></b><br>
+	 * <pre>public static void registerComponent({@link Component} c, {@link Recipe} r)</pre> Registers the given
+	 * {@code Component} with the {@code RecipePopupManager} , correspoinding the the given {@code Recipe}
+	 * @param c - The {@code Component} to register
+	 * @param r - The {@code Recipe} that the {@link Component} corresponds to
+	 *        </ul>
+	 */
 	public static void registerComponent(Component c, Recipe r) {
+		if (c == null) throw new IllegalArgumentException("The component cannot be null");
+		if (r == null) throw new IllegalArgumentException("The recipe cannot be null");
 		registeredComponents.put(c, r);
 		c.addMouseListener(listener);
 		c.addMouseMotionListener(listener);
 	}
 
+	/**
+	 * <ul>
+	 * <b><i>unregisterComponent</i></b><br>
+	 * <pre>public static void unregisterComponent({@link Component} c)</pre> Unregisters the {@code Component} from the
+	 * {@code RecipePopupManager}
+	 * @param c - the {@code Component} to unregister
+	 *        </ul>
+	 */
 	public static void unregisterComponent(Component c) {
+		if (c == null) throw new IllegalArgumentException("The component cannot be null");
 		registeredComponents.remove(c);
 		c.removeMouseListener(listener);
 		c.addMouseMotionListener(listener);
 	}
 
+	/**
+	 * <ul>
+	 * <b><i>createRecipePanel</i></b><br>
+	 * <pre>private static {@link JPanel} createRecipePanel({@link Recipe} r)</pre>
+	 * @param r - The recipe to create a panel for
+	 * @return the contents of the {@link #popup} for the given {@link Recipe}
+	 *         </ul>
+	 */
 	private static JPanel createRecipePanel(Recipe r) {
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 
-		boolean products = r.getResults().size() > 1 || !Data.nameFor(r).equals(Data.nameFor(r.getResults().keySet().iterator().next()));
-		float resultCount = r.getResults().values().iterator().next();
+		final boolean products = r.getResults().size() > 1 || !Data.nameFor(r).equals(Data.nameFor(r.getResults().keySet().iterator().next()));
+		final double resultCount = r.getResults().values().iterator().next();
 
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 0;
 		c.gridy = 0;
@@ -114,24 +164,24 @@ public class RecipePopupManager extends MouseAdapter {
 		if (products) {
 			c.gridy++;
 
-			JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
+			final JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
 			p.setBackground(new Color(0, 0, 0, 0));
 			p.add(new JLabel("Products:")).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-			for (String result : r.getResults().keySet()) {
-				p.add(new ShadowLabel(Util.NUMBER_FORMAT.format(r.getResults().get(result)), Data.getItemIcon(result, true)));
+			for (final String result : r.getResults().keySet()) {
+				p.add(new BorderLabel(Util.NUMBER_FORMAT.format(r.getResults().get(result)), Data.getItemIcon(result, true)));
 			}
 
 			panel.add(p, c);
 		}
 
 		c.gridy++;
-		JLabel time = new JLabel(Util.NUMBER_FORMAT.format(r.time), TIME, SwingConstants.LEADING);
+		final JLabel time = new JLabel(Util.NUMBER_FORMAT.format(r.time), TIME, SwingConstants.LEADING);
 		time.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 		panel.add(time, c);
 
-		for (String ingredient : r.getIngredients().keySet()) {
+		for (final String ingredient : r.getIngredients().keySet()) {
 			c.gridy++;
-			JLabel label = new JLabel(Util.NUMBER_FORMAT.format(r.getIngredients().get(ingredient)) + " \u00D7 " + Data.nameFor(ingredient), Data.getItemIcon(ingredient, true), SwingConstants.LEADING);
+			final JLabel label = new JLabel(Util.NUMBER_FORMAT.format(r.getIngredients().get(ingredient)) + " \u00D7 " + Data.nameFor(ingredient), Data.getItemIcon(ingredient, true), SwingConstants.LEADING);
 			label.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
 			panel.add(label, c);
 		}

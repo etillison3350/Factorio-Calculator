@@ -1,5 +1,10 @@
 package factorio.calculator;
 
+/**
+ * TODO
+ * A non-instantiable class for calculating the edit distance between two strings, for searches.
+ * @author ricky3350
+ */
 public class EditDistance {
 
 	private EditDistance() {}
@@ -79,6 +84,16 @@ public class EditDistance {
 //		return matrix[matrix.length - 1][matrix[matrix.length - 1].length - 1];
 //	}
 
+	/**
+	 * <ul>
+	 * <b><i>distance</i></b><br>
+	 * <pre> public static double distance(String key, String match)</pre>
+	 * Calculates the edit distance between the search key and the string it's being matched against.
+	 * @param key - the search key (usually inputted by the user)
+	 * @param match - the string to test {@code key} against
+	 * @return a distance
+	 * </ul>
+	 */
 	public static double distance(String key, String match) {
 		// TODO create good edit distance algorithm
 		return match.toLowerCase().indexOf(key.toLowerCase()) + Integer.MIN_VALUE;
