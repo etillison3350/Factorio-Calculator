@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,11 @@ public class Data {
 	 * All of the {@link Recipe}s that have been loaded.
 	 */
 	private static final Set<Recipe> recipes = new HashSet<>();
+
+	/**
+	 * All of the {@link Technology Technologies} that have been loaded.
+	 */
+	private static final Set<Technology> tech = new HashSet<>();
 
 	/**
 	 * All of the {@link Assembler}s that have been loaded.
@@ -136,6 +142,24 @@ public class Data {
 			return ret1;
 		});
 		ret.addAll(recipes);
+		return ret;
+	}
+
+	public static Set<Technology> getTechnologies() {
+		return new HashSet<>(tech);
+	}
+
+	public static SortedSet<Technology> getTechSorted() {
+		final SortedSet<Technology> ret = new TreeSet<>((o1, o2) -> {
+			int d;
+			if (o1.name.equals(o2.name))
+				d = Integer.compare(o1.number, o2.number);
+			else
+				d = nameFor(o1).toLowerCase().compareTo(nameFor(o2).toLowerCase());
+			if (d == 0) return Integer.compare(o1.hashCode(), o2.hashCode());
+			return d;
+		});
+		ret.addAll(tech);
 		return ret;
 	}
 
@@ -349,6 +373,44 @@ public class Data {
 			Main.loadingDialog.incrementProgress();
 		}
 
+		final LuaValue techs = global.get("tech");
+		length = techs.length();
+		Main.loadingDialog.setText("Parsing technologies (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
+			try {
+				final LuaValue tech = techs.get(i);
+
+				final String name = tech.get("name").checkjstring();
+
+				final LuaValue unit = tech.get("unit");
+
+				final double time = unit.get("time").todouble();
+
+				final Map<String, Double> ingredients = new HashMap<>();
+				final LuaValue ing = unit.get("ingredients");
+				for (int n = 1; n <= ing.length(); n++) {
+					ingredients.put(ing.get(n).get(1).tojstring(), ing.get(n).get(2).todouble());
+				}
+
+				final int count = unit.get("count").toint();
+
+				Image icon;
+				try {
+					final String iconPath = resolve(tech.get("icon").checkjstring(), modPaths);
+					icon = Toolkit.getDefaultToolkit().getImage(Paths.get(iconPath).toUri().toURL());
+				} catch (final Exception e) {
+					icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
+				}
+
+				Data.tech.add(new Technology(name, time, ingredients, count, icon));
+			} catch (final LuaError e) {
+				e.printStackTrace(System.err);
+			}
+
+			Main.loadingDialog.setText("Parsing technologies (" + i + "/" + length + ")");
+			Main.loadingDialog.incrementProgress();
+		}
+
 		final LuaValue assemblers = global.get("assemblers");
 		length = assemblers.length();
 		Main.loadingDialog.setText("Parsing assemblers (0/" + length + ")");
@@ -477,6 +539,53 @@ public class Data {
 			Main.loadingDialog.incrementProgress();
 		}
 
+		final LuaValue labs = global.get("labs");
+		length = labs.length();
+		Main.loadingDialog.setText("Parsing labs (0/" + length + ")");
+		for (int i = 1; i <= length; i++) {
+			try {
+				final LuaValue lab = labs.get(i);
+
+				final String name = lab.get("name").checkjstring();
+
+				final Collection<String> ingredients = new HashSet<>();
+				final LuaValue inputs = lab.get("inputs");
+				for (int n = 1; n <= inputs.length(); n++) {
+					ingredients.add(inputs.get(n).tojstring());
+				}
+
+				final double speed = lab.get("researching_speed").todouble();
+
+				final String nrg = lab.get("energy_usage").checkjstring().replace("W", "").toLowerCase();
+				final long energy = Long.parseLong(nrg.replaceAll("\\D+", "")) * (nrg.endsWith("k") ? 1000 : nrg.endsWith("m") ? 1000000 : nrg.endsWith("g") ? 1000000000 : 1);
+
+				final boolean burner = lab.get("energy_source").get("type").checkjstring().contains("burner");
+
+				final double effectivity = lab.get("energy_source").get("effectivity").optdouble(1);
+
+				int modules;
+				try {
+					modules = lab.get("module_specification").get("module_slots").optint(0);
+				} catch (final LuaError e) {
+					modules = 0;
+				}
+
+				final List<String> effects = new ArrayList<>();
+				final LuaValue luaEff = lab.get("allowed_effects");
+				if (luaEff != LuaValue.NIL) {
+					for (int l = 1; l < luaEff.length(); l++)
+						effects.add(luaEff.get(l).checkjstring());
+				}
+
+				Data.assemblers.add(new Lab(name, ingredients, speed, energy, modules, burner, effectivity, effects));
+			} catch (final LuaError e) {
+				e.printStackTrace(System.err);
+			}
+
+			Main.loadingDialog.setText("Parsing labs (" + i + "/" + length + ")");
+			Main.loadingDialog.incrementProgress();
+		}
+
 		final LuaValue modules = global.get("modules");
 		length = modules.length();
 		Main.loadingDialog.setText("Parsing modules (0/" + length + ")");
@@ -529,7 +638,13 @@ public class Data {
 		}
 	}
 
+	public static String nameFor(final Technology tech) {
+		return nameFor(tech.name) + (tech.number > 0 ? " " + tech.number : "");
+	}
+
 	public static String nameFor(final Recipe recipe) {
+		if (recipe instanceof Technology) return nameFor((Technology) recipe);
+
 		final String ret = nameFor(recipe.name);
 		if (ret == null) return nameFor(recipe.getResults().keySet().iterator().next());
 		return ret;
@@ -538,9 +653,9 @@ public class Data {
 	/**
 	 * <ul>
 	 * <b><i>nameFor</i></b><br>
-	 * <pre> String nameFor() </pre> description
-	 * @param id
-	 * @return
+	 * <pre>public static {@link String} nameFor() </pre>
+	 * @param id - the internal name of the object to get the name for
+	 * @return - the in-game name for the given internal name.
 	 *         </ul>
 	 */
 	public static String nameFor(final String id) {

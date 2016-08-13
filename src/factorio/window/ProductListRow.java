@@ -69,9 +69,9 @@ public class ProductListRow extends JPanel {
 	/**
 	 * The current numerical value of {@link #text}
 	 */
-	private double value = 0;
+	private double value = Double.NaN;
 
-	public ProductListRow(Recipe recipe) {
+	public ProductListRow(final Recipe recipe) {
 		super(new BorderLayout());
 		this.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 0));
 
@@ -94,17 +94,17 @@ public class ProductListRow extends JPanel {
 		this.text.addFocusListener(new FocusAdapter() {
 
 			@Override
-			public void focusLost(FocusEvent e) {
+			public void focusLost(final FocusEvent e) {
 				try {
 					if (!ProductListRow.this.text.getText().isEmpty()) {
 						ProductListRow.this.value = Evaluator.evaluate(ProductListRow.this.text.getText());
 					} else {
-						ProductListRow.this.value = 0;
+						ProductListRow.this.value = Double.NaN;
 					}
 					ProductListRow.this.text.setBackground(Color.WHITE);
 				} catch (final IllegalArgumentException exception) {
 					ProductListRow.this.text.setBackground(new Color(255, 192, 192));
-					ProductListRow.this.value = 0;
+					ProductListRow.this.value = Double.NaN;
 				}
 			}
 
@@ -113,12 +113,12 @@ public class ProductListRow extends JPanel {
 		doc.setDocumentFilter(new DocumentFilter() {
 
 			@Override
-			public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+			public void insertString(final FilterBypass fb, final int offset, final String string, final AttributeSet attr) throws BadLocationException {
 				fb.insertString(offset, string.replaceAll("[^\\d\\.\\-\\+\\*\\/\\(\\)]+", ""), attr);
 			}
 
 			@Override
-			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+			public void replace(final FilterBypass fb, final int offset, final int length, final String text, final AttributeSet attrs) throws BadLocationException {
 				fb.replace(offset, length, text.replaceAll("[^\\d\\.\\-\\+\\*\\/\\(\\)]+", ""), attrs);
 			}
 
@@ -133,12 +133,11 @@ public class ProductListRow extends JPanel {
 		r.weighty = 1;
 		right.add(this.text, r);
 
-		final String[] optionArray = recipe.getResults().size() == 1 && Math.abs(recipe.getResults().values().iterator().next() - 1) < 0.0001 ? new String[] {"items per second", "max cap. assembers"} : new String[] {"items per second", "cycles per second", "max cap. assembers"};
-		this.options = new JComboBox<>(optionArray);
+		this.options = new JComboBox<>(this.getOptions());
 		this.options.addItemListener(e -> {
 			if (e.getStateChange() != ItemEvent.SELECTED) return;
 
-			ProductListRow.this.configure.setEnabled(ProductListRow.this.options.getSelectedIndex() == optionArray.length);
+			ProductListRow.this.configure.setEnabled(ProductListRow.this.options.getSelectedIndex() == this.getOptions().length);
 		});
 		this.options.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
@@ -149,7 +148,10 @@ public class ProductListRow extends JPanel {
 		this.configure = new JButton(new ImageIcon("resources\\gear.png"));
 		this.configure.setMargin(new Insets(1, 1, 1, 1));
 		this.configure.addActionListener(e -> {
-			// TODO: Add action listener
+			if (e.getSource() == this.configure) {
+				final AssemblerSettings s = this.configure();
+				if (s != null) this.assemblerSettings = s;
+			}
 		});
 		this.configure.setEnabled(false);
 
@@ -163,13 +165,41 @@ public class ProductListRow extends JPanel {
 
 	/**
 	 * <ul>
+	 * <b><i>getOptions</i></b><br>
+	 * <pre>private {@link String}[] getOptions({@link Recipe} recipe)</pre>
+	 * @return the options for the options combo box.
+	 *         </ul>
+	 */
+	protected String[] getOptions() {
+		if (this.recipe.getResults().size() == 1 && Math.abs(this.recipe.getResults().values().iterator().next() - 1) < 0.0001) {
+			return new String[] {"items per second", "max cap. assembers"};
+		} else {
+			return new String[] {"items per second", "cycles per second", "max cap. assembers"};
+		}
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>getSelectedOption</i></b><br>
+	 * <pre>public final {@link String} getSelectedOption()</pre>
+	 * @return the text of the selected option in the combo box.
+	 *         </ul>
+	 */
+	public final String getSelectedOption() {
+		return this.options.getSelectedItem().toString();
+	}
+
+	/**
+	 * <ul>
 	 * <b><i>getRate</i></b><br>
 	 * <pre>public double getRate()</pre>
 	 * @return The number of recipe cycles per second the user has specified in this <code>ProductListRow</code>'s text field.
 	 *         </ul>
 	 */
 	public double getRate() {
-		switch (this.options.getSelectedItem().toString()) {
+		if (Double.isNaN(this.value)) return 0;
+
+		switch (this.getSelectedOption()) {
 			case "cycles per second":
 				return this.value;
 			case "max cap. assembers":
@@ -177,6 +207,26 @@ public class ProductListRow extends JPanel {
 			default:
 				return this.value / this.recipe.getResults().values().stream().mapToDouble(f -> (double) f).sum();
 		}
+	}
+
+	protected final AssemblerSettings getAssemblerSettings() {
+		return this.assemblerSettings;
+	}
+
+	protected final double getValue() {
+		return this.value;
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>configure</i></b><br>
+	 * <pre>public {@link AssemblerSettings} configure()</pre> Called when the current assembler needs to be configured
+	 * @return the new settings from the configuration, or <code>null</code> of it was cancelled.
+	 *         </ul>
+	 */
+	public AssemblerSettings configure() {
+		// TODO
+		return null;
 	}
 
 }

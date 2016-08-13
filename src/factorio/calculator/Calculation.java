@@ -31,7 +31,7 @@ public class Calculation {
 	 * Creates and calculates a new calculation with the given rates.
 	 * @param productRates - A map mapping recipes to be produced to the rate at which they should be produced at
 	 */
-	public Calculation(Map<Recipe, ? extends Number> productRates) {
+	public Calculation(final Map<Recipe, ? extends Number> productRates) {
 		this.productRates.putAll(productRates);
 
 		for (final Recipe recipe : productRates.keySet()) {
@@ -73,7 +73,7 @@ public class Calculation {
 	 * @param parent - The node to add the new node to
 	 *        </ul>
 	 */
-	private static void addRecipeToParent(CalculatedRecipe recipe, DefaultMutableTreeNode parent) {
+	private static void addRecipeToParent(final CalculatedRecipe recipe, final DefaultMutableTreeNode parent) {
 		final DefaultMutableTreeNode node = new DefaultMutableTreeNode(recipe);
 		parent.add(node);
 
@@ -92,7 +92,7 @@ public class Calculation {
 	 * @param parent - The node to add the new node to
 	 *        </ul>
 	 */
-	private static void addTotalToParent(TotalItem total, DefaultMutableTreeNode parent) {
+	private static void addTotalToParent(final TotalItem total, final DefaultMutableTreeNode parent) {
 		final DefaultMutableTreeNode node = new DefaultMutableTreeNode(total);
 		parent.add(node);
 
@@ -134,23 +134,24 @@ public class Calculation {
 	 * <b><i>addRecipeToTotals</i></b><br>
 	 * <pre> private static void addRecipeToTotals({@link CalculatedRecipe} recipe, {@link Collection}&lt;{@link TotalItem}&gt; totalItems, {@code Collection}&lt;{@link TotalAssemblerCount}&gt; totalAssemblers)</pre>
 	 * Adds the given {@code CalculatedRecipe} and all of its children to the given collections, using
-	 * {@link TotalItem#add(double, double, Recipe, double, AssemblerSettings)}, {@link TotalAssemblerCount#add(double)}, or
-	 * {@linkplain Collection#add(Object) adding} a new total into the appropriate {@code Collection}
+	 * {@link TotalItem#add(double, double, Recipe, double, AssemblerSettings, boolean)},
+	 * {@link TotalAssemblerCount#add(double)}, or {@linkplain Collection#add(Object) adding} a new total into the appropriate
+	 * {@code Collection}
 	 * @param recipe - The recipe to add
 	 * @param totalItems - A {@code Collection} of {@code TotalItem}s to add to
 	 * @param totalAssemblers - A {@code Collection} of {@code TotalAssemblerCount}s to add to
 	 *        </ul>
 	 */
-	private static void addRecipeToTotals(CalculatedRecipe recipe, Collection<TotalItem> totalItems, Collection<TotalAssemblerCount> totalAssemblers) {
+	private static void addRecipeToTotals(final CalculatedRecipe recipe, final Collection<TotalItem> totalItems, final Collection<TotalAssemblerCount> totalAssemblers) {
 		findItem: {
 			for (final TotalItem ti : totalItems) {
-				if (recipe.product.equals(ti.getItem())) {
-					ti.add(recipe.getRate(), recipe.getRecipeRate(), recipe.getRecipe(), recipe.getAssemblers(), recipe.getAssembler());
+				if (recipe.product == ti.getItem() || (recipe.product != null && recipe.product.equals(ti.getItem()))) {
+					ti.add(recipe.getRate(), recipe.getRecipeRate(), recipe.getRecipe(), recipe.getAssemblers(), recipe.getAssembler(), recipe.fuel != null);
 					break findItem;
 				}
 			}
 			final TotalItem add = new TotalItem(recipe.product, recipe.getRecipe(), recipe.getAssembler());
-			add.add(recipe.getRate(), recipe.getRecipeRate(), recipe.getRecipe(), recipe.getAssemblers(), recipe.getAssembler());
+			add.add(recipe.getRate(), recipe.getRecipeRate(), recipe.getRecipe(), recipe.getAssemblers(), recipe.getAssembler(), recipe.fuel != null);
 			totalItems.add(add);
 		}
 

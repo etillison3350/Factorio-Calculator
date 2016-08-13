@@ -8,6 +8,11 @@ for k, v in pairs(data.raw.resource) do
 	table.insert(resources, v)
 end
 
+tech = {}
+for k, v in pairs(data.raw.technology) do
+	table.insert(tech, v)
+end
+
 assemblers = {}
 for k, v in pairs(data.raw["assembling-machine"]) do
 	table.insert(assemblers, v)
@@ -27,6 +32,11 @@ end
 pumps = {}
 for k, v in pairs(data.raw["offshore-pump"]) do
 	table.insert(pumps, v)
+end
+
+labs = {}
+for k, v in pairs(data.raw.lab) do
+	table.insert(labs, v)
 end
 
 modules = {}
@@ -66,7 +76,7 @@ for k, v in pairs(data.raw) do
 	end
 end
 
-totalLength = #recipes + #resources + #assemblers + #drills + #pumps + #modules + #fuel
+totalLength = #recipes + #resources + #tech + #assemblers + #drills + #pumps + #labs + #modules + #fuel
 
 function getIngredients(arr)
 	standard = {}

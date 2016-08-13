@@ -3,8 +3,8 @@ package factorio.window;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -16,8 +16,7 @@ import factorio.data.Data;
 import factorio.data.Recipe;
 
 /**
- * A panel containing a {@link ProductListRow} for each {@link Recipe} in
- * {@link Data#getRecipes()}
+ * A panel containing a {@link ProductListRow} for each {@link Recipe} in {@link Data#getRecipes()}
  * @author ricky3350
  */
 public class ProductList extends JPanel {
@@ -30,30 +29,34 @@ public class ProductList extends JPanel {
 	private String searchKey;
 
 	/**
-	 * The container for the rows, to make the rows stay at the top of the panel
-	 * instead of spreading over the entire thing.
+	 * The container for the rows, to make the rows stay at the top of the panel instead of spreading over the entire thing.
 	 */
 	private final JPanel container;
 
 	/**
-	 * An array of a {@link ProductListRow} for each {@link Recipe} in
-	 * {@link Data#getRecipes()}
+	 * An array of a {@link ProductListRow} for each {@link Recipe} in {@link Data#getRecipes()}
 	 */
 	private final ProductListRow[] listRows;
 
-	public ProductList() {
+	public ProductList(final Collection<ProductListRow> listRows) {
 		super(new BorderLayout());
 
 		this.container = new JPanel(new GridLayout(0, 1));
 
-		final Set<Recipe> recipes = Data.getRecipesSorted();
+		this.listRows = listRows.toArray(new ProductListRow[listRows.size()]);
 
-		this.listRows = new ProductListRow[recipes.size()];
+		this.setSearchKey("");
 
-		final Iterator<Recipe> iter = recipes.iterator();
-		for (int i = 0; i < this.listRows.length; i++) {
-			this.listRows[i] = new ProductListRow(iter.next());
-		}
+		this.add(this.container, BorderLayout.PAGE_START);
+	}
+
+	public ProductList(final ProductListRow... listRows) {
+		super(new BorderLayout());
+
+		this.container = new JPanel(new GridLayout(0, 1));
+
+		this.listRows = new ProductListRow[listRows.length];
+		System.arraycopy(listRows, 0, this.listRows, 0, listRows.length);
 
 		this.setSearchKey("");
 
@@ -74,13 +77,12 @@ public class ProductList extends JPanel {
 	/**
 	 * <ul>
 	 * <b><i>setSearchKey</i></b><br>
-	 * <pre> void setSearchKey()</pre> Sets the current search key, and reorders
-	 * the {@link ProductListRow}s accordingly.
+	 * <pre> void setSearchKey()</pre> Sets the current search key, and reorders the {@link ProductListRow}s accordingly.
 	 * @param searchKey - the new search key
 	 * @see {@link EditDistance#distance(String, String)}
 	 *      </ul>
 	 */
-	public void setSearchKey(String searchKey) {
+	public void setSearchKey(final String searchKey) {
 		this.searchKey = searchKey == null ? "" : searchKey;
 
 		this.container.removeAll();
@@ -128,8 +130,8 @@ public class ProductList extends JPanel {
 	 * <ul>
 	 * <b><i>getRates</i></b><br>
 	 * <pre>public {@link Map}&lt;{@link Recipe}, {@link Number}&gt; getRates()</pre>
-	 * @return a map mapping the recipes that are to be calculated for to the
-	 *         rates (in cycles per second) at which they are to be produced.
+	 * @return a map mapping the recipes that are to be calculated for to the rates (in cycles per second) at which they are to
+	 *         be produced.
 	 *         </ul>
 	 */
 	public Map<Recipe, Number> getRates() {

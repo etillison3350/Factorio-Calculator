@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -73,27 +74,27 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 */
 	private final Map<String, CalculatedRecipe> ingredients = new TreeMap<>();
 
-	public CalculatedRecipe(Recipe recipe, double rate) {
+	public CalculatedRecipe(final Recipe recipe, final double rate) {
 		if (recipe == null) throw new IllegalArgumentException("recipe cannot be null");
 
 		this.hasFuelLabel = false;
 		this.fuel = null;
 
 		this.recipe = recipe;
-		this.product = this.recipe.getResults().keySet().iterator().next();
+		this.product = this.recipe.getResults().size() == 1 ? this.recipe.getResults().keySet().iterator().next() : null;
 		this.recipeRate = rate;
-		this.rate = this.recipeRate * this.recipe.getResults().get(this.product);
+		this.rate = this.product == null ? Double.NaN : this.recipeRate * this.recipe.getResults().get(this.product);
 		this.assembler = AssemblerSettings.getDefaultSettings(this.recipe);
 
 		this.calculateAssemblers();
 		addIngredients(this.ingredients, this.recipe, this.assembler, this.recipeRate, null, this.assemblerCount, new ArrayList<>());
 	}
 
-	public CalculatedRecipe(String product, double rate) {
+	public CalculatedRecipe(final String product, final double rate) {
 		this(product, rate, new ArrayList<>(), null);
 	}
 
-	private CalculatedRecipe(String product, double rate, Collection<String> banned, String fuel) {
+	private CalculatedRecipe(final String product, final double rate, final Collection<String> banned, final String fuel) {
 		this.hasFuelLabel = false;
 		this.fuel = fuel;
 
@@ -115,7 +116,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 		}
 	}
 
-	private CalculatedRecipe(String fuel, double energy, boolean inclIngredients) {
+	private CalculatedRecipe(final String fuel, final double energy, final boolean inclIngredients) {
 		this.hasFuelLabel = true;
 		this.fuel = fuel;
 		this.product = fuel;
@@ -157,7 +158,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * @param banned - a {@code Collection} of recipes that cannot be used in ingredients
 	 *        </ul>
 	 */
-	private static void addIngredients(Map<String, CalculatedRecipe> ingredients, Recipe recipe, AssemblerSettings assembler, double recipeRate, String fuel, double assemblerCount, Collection<String> banned) {
+	private static void addIngredients(final Map<String, CalculatedRecipe> ingredients, final Recipe recipe, final AssemblerSettings assembler, final double recipeRate, final String fuel, final double assemblerCount, final Collection<String> banned) {
 		final Collection<String> newBanned = new ArrayList<>(banned);
 		newBanned.add(recipe.name);
 		for (final String ingredient : recipe.getIngredients().keySet()) {
@@ -179,7 +180,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * @return the total rate, as described above.
 	 *         </ul>
 	 */
-	private static double totalFuelRequirements(Collection<CalculatedRecipe> ingredients, String fuel) {
+	private static double totalFuelRequirements(final Collection<CalculatedRecipe> ingredients, final String fuel) {
 		double ret = 0;
 		final Set<CalculatedRecipe> toRemove = new HashSet<>();
 		for (final CalculatedRecipe r : ingredients) {
@@ -203,16 +204,13 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 */
 	private void calculateAssemblers() {
 		if (this.recipe != null && this.assembler != null) {
-			// The number of items produced per second by one assembler
-			final double ips = this.recipe.getResults().get(this.product) * this.assembler.getProductivity() / this.recipe.timeIn(this.assembler.getAssembler(), this.assembler.getSpeed());
-
-			this.assemblerCount = this.rate / ips;
+			this.assemblerCount = this.recipe.timeIn(this.assembler.getAssembler(), this.assembler.getSpeed()) * this.recipeRate / this.assembler.getProductivity();
 		}
 	}
 
 	@Override
-	public int compareTo(CalculatedRecipe o) {
-		final int d = Data.nameFor(this.product).compareTo(Data.nameFor(o.product));
+	public int compareTo(final CalculatedRecipe o) {
+		final int d = (this.product == null ? Data.nameFor(this.recipe) : Data.nameFor(this.product)).compareTo((o.product == null ? Data.nameFor(o.recipe) : Data.nameFor(o.product)));
 		if (d != 0) return d;
 		return Integer.compare(this.hashCode(), o.hashCode());
 	}
@@ -243,11 +241,11 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	/**
 	 * <ul>
 	 * <b><i>getIngredients</i></b><br>
-	 * <pre>public {@link Set}&lt;{@link CalculatedRecipe}&gt; getIngredients()</pre>
-	 * @return a {@code Set} of the ingredients (children) of this {@code CalculatedRecipe}
+	 * <pre>public {@link SortedSet}&lt;CalculatedRecipe&gt; getIngredients()</pre>
+	 * @return a {@code SortedSet} of the ingredients (children) of this {@code CalculatedRecipe}
 	 *         </ul>
 	 */
-	public Set<CalculatedRecipe> getIngredients() {
+	public SortedSet<CalculatedRecipe> getIngredients() {
 		return new TreeSet<>(this.ingredients.values());
 	}
 
@@ -255,7 +253,9 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * <ul>
 	 * <b><i>getRate</i></b><br>
 	 * <pre>public double getRate()</pre>
-	 * @return the rate, in items per second, that this {@code CalculatedRecipe} is calculating for
+	 * @return the rate, in items per second, that this {@code CalculatedRecipe} is calculating for, or {@link Double#NaN} if
+	 *         this {@code CalculatedRecipe} is not calculating for a specific {@link #product} (i.e. {@code product} is
+	 *         <code>null</code>)
 	 *         </ul>
 	 */
 	public double getRate() {
@@ -264,7 +264,11 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 
 	@Override
 	public String getRawString() {
-		final String ret = String.format("%s%s at %s/s%s", (this.hasFuelLabel ? "Fuel: " : ""), Data.nameFor(this.product), Util.formatPlural(this.rate, "item"), Util.hasMultipleRecipes(this.product) ? String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle")) : "");
+		String ret;
+		if (this.product == null)
+			ret = String.format("%s at %s/s", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle"));
+		else
+			ret = String.format("%s%s at %s/s%s", (this.hasFuelLabel ? "Fuel: " : ""), Data.nameFor(this.product), Util.formatPlural(this.rate, "item"), Util.hasMultipleRecipes(this.product) ? String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "cycle")) : "");
 
 		return ret + (this.assembler != null ? String.format(" requires %s %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(false)) : "");
 	}
@@ -292,20 +296,24 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	}
 
 	@Override
-	public Component getTreeCellRendererComponent(boolean selected, boolean hasFocus) {
+	public Component getTreeCellRendererComponent(final boolean selected, final boolean hasFocus) {
 		final JPanel ret = new JPanel(new FlowLayout(FlowLayout.LEADING, 1, 1));
 		TreeCell.addBorders(ret, selected, hasFocus);
 
-		final String asm = this.assembler != null ? String.format(" requires <b>%s</b> %s%s</html>", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : "";
+		final String asm = this.assembler != null ? String.format(" requires <b>%s</b> %s%s", Util.NUMBER_FORMAT.format(this.assemblerCount), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : "";
 
-		String prod = String.format("<html><b>%s%s</b> at <b>%s/s", (this.hasFuelLabel ? "Fuel</b>: <b>" : ""), Data.nameFor(this.product), Util.formatPlural(this.rate, "</b> item"));
-		if (Util.hasMultipleRecipes(this.product)) {
-			prod += " (using ";
-			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)%s</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle"), asm), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+		if (this.product == null) {
+			ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s%s</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle"), asm), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		} else {
-			prod += asm;
+			String prod = String.format("<html><b>%s%s</b> at <b>%s/s", (this.hasFuelLabel ? "Fuel</b>: <b>" : ""), Data.nameFor(this.product), Util.formatPlural(this.rate, "</b> item"));
+			if (Util.hasMultipleRecipes(this.product)) {
+				prod += " (using ";
+				ret.add(new JLabel(String.format("<html><b>%s</b> at <b>%s/s)%s</html>", Data.nameFor(this.recipe), Util.formatPlural(this.recipeRate, "</b> cycle"), asm), this.recipe.getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			} else {
+				prod += asm;
+			}
+			ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.product, false), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
-		ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.product, false), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 
 		return ret;
 	}
@@ -318,7 +326,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * @param rate - The rate to set
 	 *        </ul>
 	 */
-	public void setRate(double rate) {
+	public void setRate(final double rate) {
 		this.rate = rate;
 		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(this.product).doubleValue();
 
@@ -336,7 +344,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * @param settings - The settings to set
 	 *        </ul>
 	 */
-	public void setRateAndSettings(double rate, AssemblerSettings settings) {
+	public void setRateAndSettings(final double rate, final AssemblerSettings settings) {
 		this.rate = rate;
 		if (this.recipe != null) this.recipeRate = this.rate / this.recipe.getResults().get(this.product).doubleValue();
 		this.assembler = settings;
@@ -353,7 +361,7 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	 * @param settings - The settings to set
 	 *        </ul>
 	 */
-	public void setSettings(AssemblerSettings settings) {
+	public void setSettings(final AssemblerSettings settings) {
 		this.assembler = settings;
 
 		this.calculateAssemblers();
@@ -369,17 +377,6 @@ public class CalculatedRecipe implements TreeCell, Comparable<CalculatedRecipe> 
 	private void updateIngredients() {
 		if (this.recipe != null && this.assembler != null) {
 			for (final String ingredient : this.ingredients.keySet()) {
-				System.out.println("B:" + ingredient);
-				System.out.println("C:" + this);
-				System.out.println("D:" + this.ingredients);
-				System.out.println("E:" + this.ingredients.get(ingredient));
-				System.out.println("F:" + this.recipeRate);
-				System.out.println("G:" + this.recipe);
-				System.out.println("H:" + this.getRecipe().getIngredients());
-				System.out.println("I:" + this.getRecipe().getIngredients().get(ingredient));
-				System.out.println("J:" + this.assembler);
-				System.out.println("K:" + this.assembler.getProductivity());
-				System.out.println();
 				this.ingredients.get(ingredient).setRate(ingredient.startsWith("__FUEL__") ? this.assembler.getAssembler().energy * this.assembler.getEfficiency() * this.assemblerCount / Data.getFuelValue(this.fuel) : this.recipeRate * this.recipe.getIngredients().get(ingredient) / this.assembler.getProductivity());
 			}
 		}

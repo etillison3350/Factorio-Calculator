@@ -9,8 +9,8 @@ import java.util.HashMap;
  */
 public class OffshoreRecipe extends Recipe {
 
-	public OffshoreRecipe(String name, String pumpName, String fluid, Image icon) {
-		super(name, "pump-" + pumpName, 0.016666666F, new HashMap<>(), fluid, icon);
+	public OffshoreRecipe(final String name, final String pumpName, final String fluid, final Image icon) {
+		super(name, "pump-" + pumpName, 1 / 60.0, new HashMap<>(), fluid, icon);
 	}
 
 }

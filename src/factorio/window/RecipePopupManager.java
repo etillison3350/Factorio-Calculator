@@ -33,6 +33,7 @@ import javax.swing.Timer;
 import factorio.Util;
 import factorio.data.Data;
 import factorio.data.Recipe;
+import factorio.data.Technology;
 
 /**
  * A non-instanitable manager for {@link Popup}s when the recipe {@link JLabel}s in {@link ProductListRow}s are hovered over.
@@ -81,7 +82,7 @@ public class RecipePopupManager extends MouseAdapter {
 		panel.addMouseMotionListener(new MouseMotionAdapter() {
 
 			@Override
-			public void mouseMoved(MouseEvent e) {
+			public void mouseMoved(final MouseEvent e) {
 				final Point converted = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), currentComponent);
 				if (currentComponent != null && !currentComponent.contains(converted)) {
 					listener.mouseExited(new MouseEvent(currentComponent, MouseEvent.MOUSE_EXITED, e.getWhen(), e.getModifiers(), converted.x, converted.y, e.getClickCount(), e.isPopupTrigger()));
@@ -113,7 +114,7 @@ public class RecipePopupManager extends MouseAdapter {
 	 * @param r - The {@code Recipe} that the {@link Component} corresponds to
 	 *        </ul>
 	 */
-	public static void registerComponent(Component c, Recipe r) {
+	public static void registerComponent(final Component c, final Recipe r) {
 		if (c == null) throw new IllegalArgumentException("The component cannot be null");
 		if (r == null) throw new IllegalArgumentException("The recipe cannot be null");
 		registeredComponents.put(c, r);
@@ -129,11 +130,11 @@ public class RecipePopupManager extends MouseAdapter {
 	 * @param c - the {@code Component} to unregister
 	 *        </ul>
 	 */
-	public static void unregisterComponent(Component c) {
+	public static void unregisterComponent(final Component c) {
 		if (c == null) throw new IllegalArgumentException("The component cannot be null");
 		registeredComponents.remove(c);
 		c.removeMouseListener(listener);
-		c.addMouseMotionListener(listener);
+		c.removeMouseMotionListener(listener);
 	}
 
 	/**
@@ -141,10 +142,12 @@ public class RecipePopupManager extends MouseAdapter {
 	 * <b><i>createRecipePanel</i></b><br>
 	 * <pre>private static {@link JPanel} createRecipePanel({@link Recipe} r)</pre>
 	 * @param r - The recipe to create a panel for
-	 * @return the contents of the {@link #popup} for the given {@link Recipe}
+	 * @return the contents of the {@link #popup} for the given {@code Recipe}
 	 *         </ul>
 	 */
-	private static JPanel createRecipePanel(Recipe r) {
+	private static JPanel createRecipePanel(final Recipe r) {
+		if (r instanceof Technology) return createTechPanel((Technology) r);
+
 		final JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 
@@ -196,8 +199,51 @@ public class RecipePopupManager extends MouseAdapter {
 		return panel;
 	}
 
+	/**
+	 * <ul>
+	 * <b><i>createTechPanel</i></b><br>
+	 * <pre>private static {@link JPanel} createTechPanel({@link Technology} tech)</pre> A {@code Technology}-specific version
+	 * of {@link #createRecipePanel(Recipe)}
+	 * @param tech - the technology to create a panel for
+	 * @return the contents of the {@link #popup} for the given {@code Technology}
+	 *         </ul>
+	 */
+	private static JPanel createTechPanel(final Technology tech) {
+		final JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+
+		final GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.insets = new Insets(8, 8, 0, 8);
+		c.weightx = 1;
+		c.weighty = 0.5;
+		panel.add(new JLabel(Data.nameFor(tech)), c);
+
+		c.gridy++;
+		final JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		p.setBackground(new Color(0, 0, 0, 0));
+		p.add(new JLabel("Cost:")).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+		p.add(new BorderLabel(Util.NUMBER_FORMAT.format(tech.time / tech.count), TIME));
+		for (final String ing : tech.getIngredients().keySet()) {
+			p.add(new BorderLabel(Util.NUMBER_FORMAT.format(tech.getIngredients().get(ing) / tech.count), Data.getItemIcon(ing, true)));
+		}
+		p.add(new JLabel("\u00D7 " + tech.count)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+		panel.add(p, c);
+
+		c.gridy++;
+		panel.add(Box.createVerticalStrut(1), c);
+
+		panel.setBackground(new Color(216, 216, 216));
+
+		panel.setBorder(BorderFactory.createRaisedBevelBorder());
+
+		return panel;
+	}
+
 	@Override
-	public void mouseMoved(MouseEvent e) {
+	public void mouseMoved(final MouseEvent e) {
 		if (popup == null) {
 			if (!(e.getSource() instanceof Component) || !registeredComponents.containsKey(e.getSource())) return;
 			currentComponent = e.getComponent();
@@ -208,7 +254,7 @@ public class RecipePopupManager extends MouseAdapter {
 	}
 
 	@Override
-	public void mouseExited(MouseEvent e) {
+	public void mouseExited(final MouseEvent e) {
 		if (e.getComponent().contains(e.getPoint())) return;
 
 		if (popup != null) {
@@ -218,5 +264,4 @@ public class RecipePopupManager extends MouseAdapter {
 		currentComponent = null;
 		timer.stop();
 	}
-
 }

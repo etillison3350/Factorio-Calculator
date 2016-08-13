@@ -71,89 +71,6 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	private static final Path SETTINGS_PATH = Paths.get("config/defaults.cfg");
 
 	/**
-	 * <ul>
-	 * <b><i>getDefaultDefaults</i></b><br>
-	 * <pre> public static AssemblerSettings getDefaultDefaults({@link String} recipeType)</pre> Calculates and returns the
-	 * default {@code AssemblerSettings} for the given recipe crafting category. This has an {@link Assembler} that can craft
-	 * the given crafting category and has the higenst maximum ingredient count of all such {@code Assembler}s in
-	 * {@link Data#getAssemblers()}, the defualt fuel, and no {@link Module}s. For use when no defualt assembler has been set
-	 * for the given category.
-	 * @param recipeType - The crafting category to find a default {@code AssemblerSettings} for
-	 * @return The default {@code AssemblerSettings}, as described above
-	 * @see {@link #getDefaultSettings(Recipe)}
-	 *      </ul>
-	 */
-	public static AssemblerSettings getDefaultDefaults(final String recipeType) {
-		return new AssemblerSettings(Data.getAssemblers().stream().filter(a -> a.canCraftCategory(recipeType)).sorted(ASSEMBLER_COMPARE).findFirst().get(), defaultFuel);
-	}
-
-	/**
-	 * <ul>
-	 * <b><i>getDefaultSettings</i></b><br>
-	 * <pre> public static AssemblerSettings getDefaultSettings({@link Recipe} recipe)</pre> Gets the default
-	 * {@code AssemblerSettings} for the given recipe.<br>
-	 * <br>
-	 * If an {@code AssemblerSettings} has been stored for the recipe's category (from {@link #readSettings()}, past invocations
-	 * of this method, or TODO), the stored settings is returned if it is valid for the given recipe. If it is invalid:
-	 * <ul>
-	 * <li>If the stored settings' assembler cannot craft the given recipe because it requires too many ingredients, the
-	 * assembler worst assembler than can is used instead; i.e. the assembler that can craft recipes with at most <i>n</i>
-	 * ingredients is used, where <i>n</i> has the minimum value among all {@link Assembler}s in {@link Data#getAssemblers()},
-	 * but is greater than or equal to both the maximum number of ingredients of the stored assembler and the number of
-	 * ingredients required for the given recipe.
-	 * <li>Modules that cannot be used for the given recipe in the given assembler (see {@link Module#canCraft(String)}) are
-	 * removed.
-	 * </ul>
-	 * Otherwise, the default assembler is calculated using {@link #getDefaultDefaults(String)}, stored, and returned.
-	 * @param recipe - The recipe to find {@code AssemblerSettings} for.
-	 * @return The default {@code AssemblerSettings} for the given recipe, by the rules above.
-	 * @throws IllegalArgumentException If no assembler could be found that can craft the given recipe.
-	 *         </ul>
-	 */
-	public static AssemblerSettings getDefaultSettings(final Recipe recipe) {
-		if (defaultSettings.containsKey(recipe.category)) {
-			AssemblerSettings ret = defaultSettings.get(recipe.category);
-			if (ret.assembler.ingredients < recipe.getIngredients().size()) {
-				final NavigableSet<Assembler> assemblers = new TreeSet<>(ASSEMBLER_COMPARE);
-				assemblers.addAll(Data.getAssemblers());
-				assemblers.removeIf(a -> !a.canCraftCategory(recipe.category));
-				do {
-					ret = new AssemblerSettings(assemblers.higher(ret.assembler), ret.fuel, ret.modules);
-					if (ret.assembler == null) throw new IllegalArgumentException("Too many ingredients");
-				} while (ret.assembler.ingredients < recipe.getIngredients().size());
-			}
-
-			final List<Module> modules = new ArrayList<>(Arrays.asList(ret.modules));
-			modules.removeIf(m -> !m.canCraft(recipe.name));
-			ret = new AssemblerSettings(ret.assembler, ret.fuel, modules.toArray(new Module[modules.size()]));
-			return ret;
-		}
-		final AssemblerSettings ret = getDefaultDefaults(recipe.category);
-		if (ret.assembler.ingredients < recipe.getIngredients().size()) throw new IllegalArgumentException("Too many ingredients");
-		defaultSettings.put(recipe.category, ret);
-		return ret;
-	}
-
-	/**
-	 * <ul>
-	 * <b><i>readSettings</i></b><br>
-	 * <pre> public static void readSettings()</pre> Reads the default assemblers from {@link #SETTINGS_PATH}
-	 * </ul>
-	 */
-	public static void readSettings() {
-		if (Files.exists(SETTINGS_PATH)) try {
-			Files.readAllLines(SETTINGS_PATH).forEach(str -> {
-				final String[] parts = str.split("=", 2);
-				if (parts.length > 1) defaultSettings.put(parts[0], new AssemblerSettings(parts[1]));
-			});
-		} catch (final IOException e) {}
-
-		try {
-			Runtime.getRuntime().addShutdownHook(WRITE_SETTINGS);
-		} catch (final Exception e) {}
-	}
-
-	/**
 	 * The assembler for this {@code AssemblerSettings}
 	 */
 	private final Assembler assembler;
@@ -236,6 +153,89 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 					break;
 				}
 		this.modules = modules.toArray(new Module[modules.size()]);
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>getDefaultDefaults</i></b><br>
+	 * <pre> public static AssemblerSettings getDefaultDefaults({@link String} recipeType)</pre> Calculates and returns the
+	 * default {@code AssemblerSettings} for the given recipe crafting category. This has an {@link Assembler} that can craft
+	 * the given crafting category and has the higenst maximum ingredient count of all such {@code Assembler}s in
+	 * {@link Data#getAssemblers()}, the defualt fuel, and no {@link Module}s. For use when no defualt assembler has been set
+	 * for the given category.
+	 * @param recipeType - The crafting category to find a default {@code AssemblerSettings} for
+	 * @return The default {@code AssemblerSettings}, as described above
+	 * @see {@link #getDefaultSettings(Recipe)}
+	 *      </ul>
+	 */
+	public static AssemblerSettings getDefaultDefaults(final String recipeType) {
+		return new AssemblerSettings(Data.getAssemblers().stream().filter(a -> a.canCraftCategory(recipeType)).sorted(ASSEMBLER_COMPARE).findFirst().get(), defaultFuel);
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>getDefaultSettings</i></b><br>
+	 * <pre> public static AssemblerSettings getDefaultSettings({@link Recipe} recipe)</pre> Gets the default
+	 * {@code AssemblerSettings} for the given recipe.<br>
+	 * <br>
+	 * If an {@code AssemblerSettings} has been stored for the recipe's category (from {@link #readSettings()}, past invocations
+	 * of this method, or TODO), the stored settings is returned if it is valid for the given recipe. If it is invalid:
+	 * <ul>
+	 * <li>If the stored settings' assembler cannot craft the given recipe because it requires too many ingredients, the
+	 * assembler worst assembler than can is used instead; i.e. the assembler that can craft recipes with at most <i>n</i>
+	 * ingredients is used, where <i>n</i> has the minimum value among all {@link Assembler}s in {@link Data#getAssemblers()},
+	 * but is greater than or equal to both the maximum number of ingredients of the stored assembler and the number of
+	 * ingredients required for the given recipe.
+	 * <li>Modules that cannot be used for the given recipe in the given assembler (see {@link Module#canCraft(String)}) are
+	 * removed.
+	 * </ul>
+	 * Otherwise, the default assembler is calculated using {@link #getDefaultDefaults(String)}, stored, and returned.
+	 * @param recipe - The recipe to find {@code AssemblerSettings} for.
+	 * @return The default {@code AssemblerSettings} for the given recipe, by the rules above.
+	 * @throws IllegalArgumentException If no assembler could be found that can craft the given recipe.
+	 *         </ul>
+	 */
+	public static AssemblerSettings getDefaultSettings(final Recipe recipe) {
+		if (defaultSettings.containsKey(recipe.category)) {
+			AssemblerSettings ret = defaultSettings.get(recipe.category);
+			if (ret.assembler.ingredients < recipe.getIngredients().size()) {
+				final NavigableSet<Assembler> assemblers = new TreeSet<>(ASSEMBLER_COMPARE);
+				assemblers.addAll(Data.getAssemblers());
+				assemblers.removeIf(a -> !a.canCraftCategory(recipe.category));
+				do {
+					ret = new AssemblerSettings(assemblers.higher(ret.assembler), ret.fuel, ret.modules);
+					if (ret.assembler == null) throw new IllegalArgumentException("Too many ingredients");
+				} while (ret.assembler.ingredients < recipe.getIngredients().size());
+			}
+
+			final List<Module> modules = new ArrayList<>(Arrays.asList(ret.modules));
+			modules.removeIf(m -> !m.canCraft(recipe.name));
+			ret = new AssemblerSettings(ret.assembler, ret.fuel, modules.toArray(new Module[modules.size()]));
+			return ret;
+		}
+		final AssemblerSettings ret = getDefaultDefaults(recipe.category);
+		if (ret.assembler.ingredients < recipe.getIngredients().size()) throw new IllegalArgumentException("Too many ingredients");
+		defaultSettings.put(recipe.category, ret);
+		return ret;
+	}
+
+	/**
+	 * <ul>
+	 * <b><i>readSettings</i></b><br>
+	 * <pre> public static void readSettings()</pre> Reads the default assemblers from {@link #SETTINGS_PATH}
+	 * </ul>
+	 */
+	public static void readSettings() {
+		if (Files.exists(SETTINGS_PATH)) try {
+			Files.readAllLines(SETTINGS_PATH).forEach(str -> {
+				final String[] parts = str.split("=", 2);
+				if (parts.length > 1) defaultSettings.put(parts[0], new AssemblerSettings(parts[1]));
+			});
+		} catch (final IOException e) {}
+
+		try {
+			Runtime.getRuntime().addShutdownHook(WRITE_SETTINGS);
+		} catch (final Exception e) {}
 	}
 
 	@Override
@@ -326,6 +326,10 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 		return Math.max(0.2, 1 + Arrays.stream(this.modules).mapToDouble(module -> module.getEffectValue("consumption")).sum());
 	}
 
+	public String getFuel() {
+		return this.fuel;
+	}
+
 	/**
 	 * <ul>
 	 * <b><i>getModules</i></b><br>
@@ -335,10 +339,6 @@ public class AssemblerSettings implements Comparable<AssemblerSettings> {
 	 */
 	public Module[] getModules() {
 		return this.modules;
-	}
-
-	public String getFuel() {
-		return this.fuel;
 	}
 
 	/**

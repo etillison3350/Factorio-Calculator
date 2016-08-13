@@ -9,8 +9,7 @@ import factorio.window.LoadingDialog;
 import factorio.window.Window;
 
 /**
- * The main class, for starting the program. Houses the main method and a
- * loading dialog, only.
+ * The main class, for starting the program. Houses the main method and a loading dialog, only.
  * @author ricky3350
  */
 public class Main {

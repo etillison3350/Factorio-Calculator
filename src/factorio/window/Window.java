@@ -22,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
@@ -33,6 +34,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import factorio.calculator.Calculation;
+import factorio.data.Data;
 import factorio.data.Recipe;
 import factorio.window.treecell.CellRenderer;
 import factorio.window.treecell.TotalHeader;
@@ -52,8 +54,7 @@ public class Window extends JFrame {
 	private final JSplitPane in_out;
 
 	/**
-	 * A {@link JSplitPane} dividing the {@link #full} panel from the
-	 * {@link #total} panel
+	 * A {@link JSplitPane} dividing the {@link #full} panel from the {@link #total} panel
 	 */
 	private final JSplitPane full_total;
 
@@ -80,9 +81,19 @@ public class Window extends JFrame {
 	private final JTextField search;
 
 	/**
-	 * The product list
+	 * A tabbed pane for {@link #inputList} and {@link #techList}
+	 */
+	private final JTabbedPane listTabs;
+
+	/**
+	 * The product list for normal recipes
 	 */
 	private final ProductList inputList;
+
+	/**
+	 * The product list for technologies
+	 */
+	private final ProductList techList;
 
 	/**
 	 * The button that executes the {@link Calculation}
@@ -101,34 +112,46 @@ public class Window extends JFrame {
 		this.search.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
-			public void removeUpdate(DocumentEvent e) {
+			public void removeUpdate(final DocumentEvent e) {
 				this.update();
 			}
 
 			@Override
-			public void insertUpdate(DocumentEvent e) {
+			public void insertUpdate(final DocumentEvent e) {
 				this.update();
 			}
 
 			private void update() {
-				Window.this.inputList.setSearchKey(Window.this.search.getText().trim().toLowerCase().replace('-', ' '));
+				(Window.this.listTabs.getSelectedIndex() == 0 ? Window.this.inputList : Window.this.techList).setSearchKey(Window.this.search.getText().trim().toLowerCase().replace('-', ' '));
 			}
 
 			@Override
-			public void changedUpdate(DocumentEvent e) {}
+			public void changedUpdate(final DocumentEvent e) {}
 		});
 		this.search.setMaximumSize(new Dimension(this.search.getMaximumSize().width, this.search.getPreferredSize().height));
 		this.inputPanel.add(this.search, BorderLayout.NORTH);
 
-		this.inputList = new ProductList();
+		this.inputList = new ProductList(Data.getRecipesSorted().stream().map(ProductListRow::new).toArray(n -> new ProductListRow[n]));
 		final JScrollPane inputScroll = new JScrollPane(this.inputList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		inputScroll.getVerticalScrollBar().setUnitIncrement(Recipe.LARGE_ICON_SIZE);
 		inputScroll.setBorder(BorderFactory.createEmptyBorder());
-		this.inputPanel.add(inputScroll, BorderLayout.CENTER);
+
+		this.techList = new ProductList(Data.getTechSorted().stream().map(TechnologyProductListRow::new).toArray(n -> new ProductListRow[n]));
+		final JScrollPane techScroll = new JScrollPane(this.techList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		techScroll.getVerticalScrollBar().setUnitIncrement(Recipe.LARGE_ICON_SIZE);
+		techScroll.setBorder(BorderFactory.createEmptyBorder());
+
+		this.listTabs = new JTabbedPane();
+		this.listTabs.setBorder(BorderFactory.createEmptyBorder());
+		this.listTabs.insertTab("Recipes", null, inputScroll, null, 0);
+		this.listTabs.insertTab("Technologies", null, techScroll, null, 1);
+
+		this.inputPanel.add(this.listTabs, BorderLayout.CENTER);
 
 		this.calculate = new JButton("Calculate");
 		this.calculate.addActionListener(e -> {
 			final Map<Recipe, Number> rates = Window.this.inputList.getRates();
+			rates.putAll(this.techList.getRates());
 
 			final Calculation calc = new Calculation(rates);
 
@@ -151,7 +174,7 @@ public class Window extends JFrame {
 			private static final long serialVersionUID = 490257379525148970L;
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				final TreePath[] selected = Window.this.full.getSelectionPaths();
 				if (selected == null || selected.length <= 0) return;
 
@@ -210,7 +233,7 @@ public class Window extends JFrame {
 			private static final long serialVersionUID = -3232571785198520875L;
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				final TreePath[] selectedPaths = Window.this.total.getSelectionPaths();
 				if (selectedPaths == null || selectedPaths.length <= 0) return;
 
@@ -301,7 +324,7 @@ public class Window extends JFrame {
 
 		this.in_out = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.inputPanel, this.full_total);
 		this.in_out.setDividerSize(7);
-		this.in_out.setDividerLocation(492);
+		this.in_out.setDividerLocation(512);
 		this.add(this.in_out);
 
 		this.setJMenuBar(new MenuBar());

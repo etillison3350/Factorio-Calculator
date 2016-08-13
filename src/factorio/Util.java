@@ -25,7 +25,7 @@ public class Util {
 	/**
 	 * A general {@link NumberFormat} for numbers
 	 */
-	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#,##0.###########");
+	public static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#,##0.####");
 
 	/**
 	 * A {@link NumberFormat} for module bonuses, as a percent with a leading plus sign
