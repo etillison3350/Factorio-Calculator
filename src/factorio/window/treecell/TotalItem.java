@@ -229,7 +229,7 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 	 * @return the given numbers formatted using the above rules.
 	 *         </ul>
 	 */
-	private String formatFuel(final double notFuel, final double fuel, final boolean html, final String suffix) {
+	private static String formatFuel(final double notFuel, final double fuel, final boolean html, final String suffix) {
 		String ret = "";
 
 		if (notFuel > 0.00001 || fuel <= 0.00001) ret += (html ? "<b>" : "") + Util.NUMBER_FORMAT.format(notFuel) + (html ? "</b>" : "");
@@ -275,21 +275,25 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 	@Override
 	public String getRawString() {
 		if (this.item != null) {
-			String ret = String.format("%s at %s/s", Data.nameFor(this.item), this.formatFuel(this.itemRate, this.fuelItemRate, false, "item"));
+			String ret = String.format("%s at %s/s", Data.nameFor(this.item), TotalItem.formatFuel(this.itemRate, this.fuelItemRate, false, "item"));
 
-			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) ret += String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), this.formatFuel(this.recipeRate, this.fuelRecipeRate, false, "cycle"));
+			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) {
+				ret += String.format(" (using %s at %s/s)", Data.nameFor(this.recipe), TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, false, "cycle"));
+			} else if (this.recipeRate > 0 && this.fuelRecipeRate > 0 && (this.itemRate != this.recipeRate || this.fuelItemRate != this.fuelRecipeRate)) {
+				ret += String.format(" (at %s/s)", TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, false, "cycle"));
+			}
 
-			if (this.assembler != null) ret += String.format(" requires %s %s%s", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+			if (this.assembler != null) ret += String.format(" requires %s %s%s", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
 
 			return ret;
 		} else if (this.recipe != null) {
-			String ret = String.format("%s%s at %s/s", Double.isNaN(this.itemRate) ? "" : "using ", Data.nameFor(this.recipe), this.formatFuel(this.recipeRate, this.fuelRecipeRate, false, "cycle"));
+			String ret = String.format("%s%s at %s/s", Double.isNaN(this.itemRate) ? "" : "using ", Data.nameFor(this.recipe), TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, false, "cycle"));
 
-			if (this.assembler != null) ret += String.format(" requires %s %s%s", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+			if (this.assembler != null) ret += String.format(" requires %s %s%s", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
 
 			return ret;
 		} else if (this.assembler != null) {
-			return String.format("%s %s%s", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
+			return String.format("%s %s%s", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, false, null), Data.nameFor(this.assembler.getAssembler().name), this.getAssembler().getBonusString(false));
 		}
 
 		return "";
@@ -312,21 +316,22 @@ public class TotalItem implements TreeCell, Comparable<TotalItem> {
 		TreeCell.addBorders(ret, selected, hasFocus);
 
 		if (this.item != null) {
-			final String asm = this.assembler != null ? String.format(" requires %s %s%s</html>", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : "";
+			final String asm = this.assembler != null ? String.format(" requires %s %s%s</html>", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : "";
 
-			String prod = String.format("<html><b>%s</b> at %s/s", Data.nameFor(this.item), this.formatFuel(this.itemRate, this.fuelItemRate, true, "item"));
+			String prod = String.format("<html><b>%s</b> at %s/s", Data.nameFor(this.item), TotalItem.formatFuel(this.itemRate, this.fuelItemRate, true, "item"));
 			if (this.recipe != null && Util.hasMultipleRecipes(this.item)) {
 				prod += " (using ";
-				ret.add(new JLabel(String.format("<html><b>%s</b> at %s/s)%s</html>", Data.nameFor(this.getRecipe()), this.formatFuel(this.recipeRate, this.fuelRecipeRate, true, "cycle"), asm), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+				ret.add(new JLabel(String.format("<html><b>%s</b> at %s/s)%s</html>", Data.nameFor(this.getRecipe()), TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, true, "cycle"), asm), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 			} else {
+				if (this.recipeRate > 0 && this.fuelRecipeRate > 0 && (this.itemRate != this.recipeRate || this.fuelItemRate != this.fuelRecipeRate)) prod += String.format(" (at %s/s)", TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, true, "cycle"));
 				prod += asm;
 			}
 			ret.add(new JLabel(prod + "</html>", Data.getItemIcon(this.item, false), SwingConstants.LEADING), 0).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		} else if (this.recipe != null) {
 			if (!Double.isNaN(this.itemRate)) ret.add(new JLabel("using ", TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-			ret.add(new JLabel(String.format("<html><b>%s</b> at %s/s%s</html>", Data.nameFor(this.getRecipe()), this.formatFuel(this.recipeRate, this.fuelRecipeRate, true, "cycle"), this.assembler != null ? String.format(" requires %s %s %s", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html><b>%s</b> at %s/s%s</html>", Data.nameFor(this.getRecipe()), TotalItem.formatFuel(this.recipeRate, this.fuelRecipeRate, true, "cycle"), this.assembler != null ? String.format(" requires %s %s %s", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)) : ""), this.getRecipe().getSmallIcon(), SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		} else if (this.assembler != null) {
-			ret.add(new JLabel(String.format("<html>%s %s%s</html>", this.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			ret.add(new JLabel(String.format("<html>%s %s%s</html>", TotalItem.formatFuel(this.assemblerCount, this.fuelAssemblerCount, true, null), Data.nameFor(this.assembler.getAssembler().name), this.assembler.getBonusString(true)), TreeCell.ICON_BLANK, SwingConstants.LEADING)).setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
 		}
 
 		return ret;
